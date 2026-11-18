@@ -84,7 +84,7 @@
     "SchemaName": {
       "type": "string",
       "enum": ["turn_output", "turn_analysis", "weakness_plan"],
-      "description": "回合载荷的类型名。三份契约的 schema_name 都引用本枚举。schema_version 仍由各契约自己的 const 锁定。文档写法 turn_output@1 不是本枚举的取值。"
+      "description": "回合载荷的类型名。三份契约的 schema_name 都引用本枚举，并在各自文件里用 const 再锁成本契约的名字。文档写法 turn_output@1 不是本枚举的取值。"
     },
     "UnitInterval": {
       "type": "number",

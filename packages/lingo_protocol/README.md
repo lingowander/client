@@ -10,7 +10,12 @@ Python 校验测试在 `tests/`，Dart 测试在 `test/`。两个目录只差一
 
 `lines[].expression` 的六值枚举，以及「译文由谁生成」，都还是提案。评审通过前，客户端和服务端都不要把它们硬编码进业务逻辑。
 
-生成类型或做服务端校验之前，再给 `lines`、`choices`、`targets` 等数组加 `maxItems`，给 `text`、`translation`、`evidence` 等文本加 `maxLength`。这次没有加，因为文档没有规定这些上限。
+## 遗留问题
+
+下面两项已约定延后，这次不改：
+
+- 生成类型或做服务端校验之前，再给 `lines`、`choices`、`targets` 等数组加 `maxItems`，给 `text`、`translation`、`evidence` 等文本加 `maxLength`。文档没有这些上限。
+- 给 Python 的 `tests/` 改名，避免和 Dart 的 `test/` 只差一个字母。改名之前，`dart test` 仍只跑 `test/`。
 
 三份载荷各自带 `$id` 和整数 `schema_version`。共享定义在 `common`，载荷用 `$ref` 引用。对象都写了 `additionalProperties: false`，JSON 字段名是 snake_case。`$def` 名字用 PascalCase，给代码生成用：common 不加前缀，例如 `LangPair`、`PromptId`、`PromptVersion`、`SchemaName`；每份契约自己的 `$def` 加契约前缀，例如 `TurnOutputLine`、`TurnOutputMeta`、`TurnAnalysisObservation`、`WeaknessPlanCooldown`。没有使用 `oneOf`、`anyOf` 或 `allOf`。
 
@@ -68,7 +73,7 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `schema_name` | 是 | 引用 common 的 `SchemaName`。样例填 `turn_output`。三份契约共用这个枚举，不在各文件里用 const 锁死。 |
+| `schema_name` | 是 | 引用 common 的 `SchemaName`，并用 `const` 锁成 `turn_output`。写成别的契约名会被拒绝。 |
 | `schema_version` | 是 | 整数 `0`。 |
 | `turn_id` | 是 | 回显客户端生成的 UUID。 |
 | `pair` | 是 | `{src, tgt}`。 |
@@ -89,7 +94,7 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `schema_name` | 是 | 引用 `SchemaName`。样例填 `turn_analysis`。 |
+| `schema_name` | 是 | 引用 `SchemaName`，并用 `const` 锁成 `turn_analysis`。 |
 | `schema_version` | 是 | 整数 `0`。 |
 | `turn_id` | 是 | 回显本回合的 UUID。 |
 | `pair` | 是 | `{src, tgt}`。分析按这个语言对分桶。 |
@@ -103,7 +108,7 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `schema_name` | 是 | 引用 `SchemaName`。样例填 `weakness_plan`。 |
+| `schema_name` | 是 | 引用 `SchemaName`，并用 `const` 锁成 `weakness_plan`。 |
 | `schema_version` | 是 | 整数 `0`。 |
 | `pair` | 是 | `{src, tgt}`。 |
 | `targets` | 是 | 可为空。纯游戏样例就是空数组。空数组表示这一场不织入。 |

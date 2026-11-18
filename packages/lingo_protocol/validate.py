@@ -35,6 +35,9 @@ EXPECTED_INVALID = {
     "examples/turn_output/invalid_expression.json": (
         (("lines", 0, "expression"), "enum"),
     ),
+    "examples/turn_output/invalid_schema_name.json": (
+        (("schema_name",), "const"),
+    ),
     "examples/turn_analysis/invalid_kind.json": (
         (("observations", 0, "kind"), "enum"),
     ),
@@ -122,8 +125,8 @@ def check_schema_shape(schemas: dict[str, dict]) -> list[str]:
         schema_name_ref = "urn:lingowander:lingo_protocol:v0:common#/$defs/SchemaName"
         if schema_name.get("$ref") != schema_name_ref:
             problems.append(f"{name}.schema_name must $ref SchemaName")
-        if "const" in schema_name:
-            problems.append(f"{name}.schema_name must not lock a const; schema_version does")
+        if schema_name.get("const") != name:
+            problems.append(f"{name}.schema_name const must be {name}")
     prefixes = {
         "turn_output": "TurnOutput",
         "turn_analysis": "TurnAnalysis",
@@ -345,6 +348,21 @@ def check_expression_rules(schemas: dict[str, dict], registry: Registry) -> list
     )
     if budget_errors != ((("targets", 0, "budget_per_scene"), "minimum"),):
         problems.append(f"budget 0 must fail only minimum at targets/0/budget_per_scene, got {budget_errors}")
+
+    for name in PAYLOAD_SCHEMAS:
+        sample_path = next((EXAMPLES_DIR / name).glob("valid_*.json"))
+        sample = load_json(sample_path)
+        sample["schema_name"] = next(other for other in PAYLOAD_SCHEMAS if other != name)
+        swapped = tuple(
+            sorted(
+                error_signature(error)
+                for error in validator_for(schemas[name], registry).iter_errors(sample)
+            )
+        )
+        if swapped != ((("schema_name",), "const"),):
+            problems.append(
+                f"{name} must reject a mismatched schema_name only via const, got {swapped}"
+            )
     return problems
 
 

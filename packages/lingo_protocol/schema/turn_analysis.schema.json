@@ -18,7 +18,8 @@
   "properties": {
     "schema_name": {
       "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/SchemaName",
-      "description": "载荷类型名，取 SchemaName 枚举。样例填写 turn_analysis。schema_version 仍由本文件的 const 锁定。"
+      "const": "turn_analysis",
+      "description": "载荷类型名。类型来自 SchemaName，同时用 const 锁成 turn_analysis，避免把别的契约名写进这份载荷还能通过校验。"
     },
     "schema_version": {
       "type": "integer",
