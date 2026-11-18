@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lingowander:lingo_protocol:v0:weakness_plan",
+  "title": "weakness_plan",
+  "description": "无感薄弱点注入计划，schema_version 0。由编排器代码生成，交给对白提示词。它不是玩家可见文本。纯游戏桶不注入练习；v0 用空的 targets 表示这一场没有注入，不另设开关。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_name", "schema_version", "pair", "targets"],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "weakness_plan"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 0,
+      "description": "weakness_plan 自己的契约版本，整数，从 0 起独立递增。文档写法 weakness_plan@1 不是这个字段的值。这不是存档迁移版本。"
+    },
+    "pair": {
+      "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/pair",
+      "description": "这份计划属于哪一个语言对。技术方案示例没有这个字段，但薄弱档案按语言对分桶，计划必须自描述，避免串桶。src 与 tgt 相同表示纯游戏桶。本载荷不回显 turn_id。"
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/target"
+      },
+      "description": "本场要编织的薄弱点。可以是空数组。schema 不强制学习桶非空，也不强制纯游戏桶为空。"
+    }
+  },
+  "$defs": {
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weakness_id", "strategy", "budget_per_scene"],
+      "properties": {
+        "weakness_id": {
+          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/id_token",
+          "description": "薄弱点 id，例如 w12。"
+        },
+        "kind": {
+          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/observation_kind",
+          "description": "可选。薄弱点类别，复用分析观察的四类。语言层数据里有类别，但注入计划示例没有这个字段，所以 v0 可选。"
+        },
+        "strategy": {
+          "type": "string",
+          "enum": ["npc_reuses_form", "goal_requires", "prop_in_scene"],
+          "description": "注入方式，取自技术方案示例：NPC 复用句式、目标需要、场景道具。不增加显式纠错或测验类取值。"
+        },
+        "budget_per_scene": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "这一场允许编织该薄弱点的次数，也就是频次上限。技术方案示例值为 1。v0 不把 1 写成默认值，也不设置上界。"
+        },
+        "scene_constraints": {
+          "$ref": "#/$defs/scene_constraints",
+          "description": "可选。出现场景约束。技术方案的计划示例没有这个对象；任务需要携带约束，而文档没有定义合法场景列表。v0 只运送已有的 scene id 和 beat id，不解释它们。"
+        },
+        "cooldown": {
+          "$ref": "#/$defs/cooldown",
+          "description": "可选。冷却。语言层有下次编织时间和复习安排，但没有字段形状，间隔算法也未定。v0 只留一个可选下界，不实现间隔算法。"
+        }
+      }
+    },
+    "scene_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "scene_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/scene_id"
+          },
+          "description": "允许出现的场景 id，形态为 s_ 加至少四位数字。"
+        },
+        "beat_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/id_token"
+          },
+          "description": "允许出现的节拍 id。"
+        }
+      }
+    },
+    "cooldown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min_scenes_between"],
+      "properties": {
+        "min_scenes_between": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "两次编织之间至少隔开的场数。单位用「场」是提案：文档没有规定冷却单位。0 只表示这个整数允许为零，不是产品默认。"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema_name": "turn_output",
+  "schema_version": 0,
+  "turn_id": "00000000-0000-4000-8000-000000000001",
+  "pair": {
+    "src": "zh",
+    "tgt": "en"
+  },
+  "speaker": "npc_mika",
+  "lines": [
+    {
+      "line_id": "l1",
+      "lang": "en",
+      "text": "Morning. The window seat is free, if you want it.",
+      "expression": "warm",
+      "translation": "早。靠窗的位子空着，你要是想坐就坐。"
+    }
+  ],
+  "scene_state": {
+    "beat_id": "b1",
+    "goal_progress": "advancing",
+    "tension": 0.2
+  },
+  "meta": {
+    "prompt_id": "turn",
+    "prompt_version": "0.3.1"
+  }
+}

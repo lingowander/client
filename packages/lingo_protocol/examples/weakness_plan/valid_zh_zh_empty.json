@@ -1,0 +1,9 @@
+{
+  "schema_name": "weakness_plan",
+  "schema_version": 0,
+  "pair": {
+    "src": "zh",
+    "tgt": "zh"
+  },
+  "targets": []
+}

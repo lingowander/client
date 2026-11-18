@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lingowander:lingo_protocol:v0:turn_analysis",
+  "title": "turn_analysis",
+  "description": "回合后分析，schema_version 0。由廉价模型异步产出，不在对白的关键路径上。结果按语言对分桶，不向玩家展示，也不要写成分数、错题或等级。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "turn_id",
+    "pair",
+    "intent_success",
+    "observations",
+    "level_evidence",
+    "engagement_signals"
+  ],
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "turn_analysis"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 0,
+      "description": "turn_analysis 自己的契约版本，整数，从 0 起独立递增。文档写法 turn_analysis@1 不是这个字段的值。这不是存档迁移版本。"
+    },
+    "turn_id": {
+      "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/turn_id"
+    },
+    "pair": {
+      "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/pair",
+      "description": "这条分析属于哪一个语言对。分桶用对象，不用 zh>en 字符串。"
+    },
+    "intent_success": {
+      "type": "boolean",
+      "description": "玩家这一回合的沟通意图是否达成。这是沟通结果，不是语言水平分，也不向玩家展示。"
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/observation"
+      },
+      "description": "对玩家输入的语言观察。错误点，以及词汇或语法上被注意到的条目，都放在这里：kind 为 grammar 或 lexical 即词汇/语法相关，descriptor 是条目名。文档没有单独的命中列表，也没有正负极性，v0 不另加字段。可以是空数组。"
+    },
+    "level_evidence": {
+      "$ref": "#/$defs/level_evidence"
+    },
+    "engagement_signals": {
+      "$ref": "#/$defs/engagement_signals"
+    },
+    "analysis_confidence": {
+      "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/unit_interval",
+      "description": "可选。模型对本条分析的置信度。方案页提案：低置信度时只更新、不注入。具体阈值文档未定，schema 不编码阈值。"
+    }
+  },
+  "$defs": {
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "descriptor", "evidence_span", "severity"],
+      "properties": {
+        "kind": {
+          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/observation_kind"
+        },
+        "descriptor": {
+          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/id_token",
+          "description": "观察条目，例如 article_omission。方案页希望使用受控词表，但词表尚未给出，所以 v0 只限制标识形态，不收成枚举。"
+        },
+        "evidence_span": {
+          "type": "string",
+          "minLength": 1,
+          "description": "支撑这条观察的玩家原话片段。分析载荷不是玩家界面。"
+        },
+        "severity": {
+          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/unit_interval",
+          "description": "程度。技术方案示例为 0.3。不向玩家展示，schema 也不把它解释成对或错。"
+        }
+      }
+    },
+    "level_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["production", "comprehension"],
+      "properties": {
+        "production": {
+          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/unit_interval",
+          "description": "产出方面的隐式水平信号。文档把 production 和 comprehension 标为示例维度，量表是否对齐外部标准尚未决定。v0 为了能生成固定结构，只收这两个必填字段；增加维度需要新的 schema_version。"
+        },
+        "comprehension": {
+          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/unit_interval",
+          "description": "理解方面的隐式水平信号。同 production，不向玩家展示。"
+        }
+      }
+    },
+    "engagement_signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["turn_length", "choice_diversity"],
+      "properties": {
+        "turn_length": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "本回合玩家输入的长度信号。技术方案示例为 0。文档没有写单位，v0 不规定是字符数还是词数。"
+        },
+        "choice_diversity": {
+          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/unit_interval",
+          "description": "选项多样性信号。技术方案示例为 0.0。不向玩家展示。"
+        }
+      }
+    }
+  }
+}

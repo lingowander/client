@@ -1,0 +1,15 @@
+{
+  "schema_name": "weakness_plan",
+  "schema_version": 0,
+  "pair": {
+    "src": "zh",
+    "tgt": "en"
+  },
+  "targets": [
+    {
+      "weakness_id": "w12",
+      "strategy": "explicit_quiz",
+      "budget_per_scene": 1
+    }
+  ]
+}
