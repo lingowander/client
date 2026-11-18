@@ -1,0 +1,25 @@
+name: lingowander
+description: "Lingowander (语遇) client skeleton."
+publish_to: "none"
+resolution: workspace
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.14.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  material_ui: ^1.1.0
+  lingo_core:
+    path: ../packages/lingo_core
+  lingo_protocol:
+    path: ../packages/lingo_protocol
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,12 @@
+# Pub workspace root for the Lingowander (语遇) client.
+# Run `dart pub get` from this directory.
+name: lingowander_client
+description: Workspace root for the Lingowander (语遇) client repository.
+publish_to: "none"
+environment:
+  sdk: ^3.14.0
+
+workspace:
+  - app
+  - packages/lingo_core
+  - packages/lingo_protocol
