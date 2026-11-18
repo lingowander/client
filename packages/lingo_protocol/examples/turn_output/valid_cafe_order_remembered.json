@@ -1,0 +1,56 @@
+{
+  "schema_name": "turn_output",
+  "schema_version": 0,
+  "turn_id": "00000000-0000-4000-8000-000000000002",
+  "pair": {
+    "src": "zh",
+    "tgt": "en"
+  },
+  "speaker": "npc_mika",
+  "lines": [
+    {
+      "line_id": "l1",
+      "lang": "en",
+      "text": "Iced latte, no sugar. I will remember that.",
+      "expression": "smile"
+    },
+    {
+      "line_id": "l2",
+      "lang": "en",
+      "text": "The poster by the door is gone. It was there yesterday.",
+      "expression": "surprised"
+    }
+  ],
+  "input_mode_hint": "typing",
+  "scene_state": {
+    "beat_id": "b3",
+    "goal_progress": "advancing",
+    "tension": 0.4
+  },
+  "proposed_events": [
+    {
+      "event_key": "cafe.remembered_order",
+      "evidence_line_ids": ["l1"],
+      "evidence": "Mika repeated the iced latte order and said she would remember it."
+    }
+  ],
+  "image_requests": [
+    {
+      "slot": "cg",
+      "priority": "low",
+      "semantic_key": "poster_missing",
+      "camera": "insert"
+    }
+  ],
+  "memory_notes": [
+    {
+      "kind": "thread_open",
+      "text": "The poster by the cafe door is missing.",
+      "entities": ["npc_mika"]
+    }
+  ],
+  "meta": {
+    "prompt_id": "turn",
+    "prompt_version": "0.3.1"
+  }
+}

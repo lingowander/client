@@ -1,0 +1,26 @@
+{
+  "schema_name": "turn_analysis",
+  "schema_version": 0,
+  "turn_id": "00000000-0000-4000-8000-000000000003",
+  "pair": {
+    "src": "en",
+    "tgt": "zh"
+  },
+  "intent_success": false,
+  "observations": [
+    {
+      "kind": "pragmatic",
+      "descriptor": "request_too_direct",
+      "evidence_span": "给我咖啡",
+      "severity": 0.5
+    }
+  ],
+  "level_evidence": {
+    "production": 0.0,
+    "comprehension": 0.0
+  },
+  "engagement_signals": {
+    "turn_length": 4,
+    "choice_diversity": 0.0
+  }
+}

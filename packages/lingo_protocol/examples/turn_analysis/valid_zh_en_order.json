@@ -1,0 +1,33 @@
+{
+  "schema_name": "turn_analysis",
+  "schema_version": 0,
+  "turn_id": "00000000-0000-4000-8000-000000000001",
+  "pair": {
+    "src": "zh",
+    "tgt": "en"
+  },
+  "intent_success": true,
+  "observations": [
+    {
+      "kind": "grammar",
+      "descriptor": "article_omission",
+      "evidence_span": "I want iced latte",
+      "severity": 0.3
+    },
+    {
+      "kind": "lexical",
+      "descriptor": "order_drink_phrase",
+      "evidence_span": "iced latte",
+      "severity": 0.1
+    }
+  ],
+  "level_evidence": {
+    "production": 0.4,
+    "comprehension": 0.6
+  },
+  "engagement_signals": {
+    "turn_length": 12,
+    "choice_diversity": 0.5
+  },
+  "analysis_confidence": 0.7
+}

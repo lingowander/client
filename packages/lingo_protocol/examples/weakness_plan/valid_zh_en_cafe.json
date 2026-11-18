@@ -1,0 +1,37 @@
+{
+  "schema_name": "weakness_plan",
+  "schema_version": 0,
+  "pair": {
+    "src": "zh",
+    "tgt": "en"
+  },
+  "targets": [
+    {
+      "weakness_id": "w12",
+      "kind": "grammar",
+      "strategy": "npc_reuses_form",
+      "budget_per_scene": 1,
+      "scene_constraints": {
+        "scene_ids": ["s_0042"],
+        "beat_ids": ["b2", "b3"]
+      },
+      "cooldown": {
+        "min_scenes_between": 1
+      }
+    },
+    {
+      "weakness_id": "w18",
+      "kind": "lexical",
+      "strategy": "prop_in_scene",
+      "budget_per_scene": 1,
+      "scene_constraints": {
+        "scene_ids": ["s_0042"]
+      }
+    },
+    {
+      "weakness_id": "w21",
+      "strategy": "goal_requires",
+      "budget_per_scene": 1
+    }
+  ]
+}

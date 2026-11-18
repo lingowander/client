@@ -1,0 +1,29 @@
+name: lingo_protocol
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - "packages/lingo_protocol/**"
+      - ".github/workflows/lingo-protocol.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/lingo_protocol/**"
+      - ".github/workflows/lingo-protocol.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the validator
+        run: pip install -c packages/lingo_protocol/constraints.txt -r packages/lingo_protocol/requirements.txt
+      - name: Validate schema examples
+        run: python3 packages/lingo_protocol/validate.py

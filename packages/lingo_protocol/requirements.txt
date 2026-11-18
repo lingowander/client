@@ -1,0 +1,4 @@
+# Direct dev dependency. Transitive pins live in constraints.txt.
+# Install with: pip install -c constraints.txt -r requirements.txt
+# Dev-only. Not a Flutter or Go runtime dependency.
+jsonschema==4.23.0

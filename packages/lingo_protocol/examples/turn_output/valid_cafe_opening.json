@@ -1,0 +1,72 @@
+{
+  "schema_name": "turn_output",
+  "schema_version": 0,
+  "turn_id": "00000000-0000-4000-8000-000000000001",
+  "pair": {
+    "src": "zh",
+    "tgt": "en"
+  },
+  "speaker": "npc_mika",
+  "lines": [
+    {
+      "line_id": "l1",
+      "lang": "en",
+      "text": "Morning. The window seat is free, if you want it.",
+      "expression": "smile",
+      "translation": "早。靠窗的位子空着，你要是想坐就坐。"
+    },
+    {
+      "line_id": "l2",
+      "lang": "en",
+      "text": "I can take your order whenever you are ready.",
+      "expression": "neutral"
+    }
+  ],
+  "choices": [
+    {
+      "id": "c1",
+      "lang": "en",
+      "text": "An iced latte, please.",
+      "intent": "order_drink"
+    },
+    {
+      "id": "c2",
+      "lang": "en",
+      "text": "What do you recommend?",
+      "intent": "ask_recommendation"
+    }
+  ],
+  "input_mode_hint": "word_choice",
+  "scene_state": {
+    "beat_id": "b1",
+    "next_beat_hint": "b2",
+    "goal_progress": "advancing",
+    "tension": 0.2
+  },
+  "proposed_events": [],
+  "image_requests": [
+    {
+      "slot": "background",
+      "priority": "normal",
+      "semantic_key": "cafe_interior_day",
+      "camera": "medium_wide"
+    },
+    {
+      "slot": "expression",
+      "priority": "normal",
+      "npc_id": "npc_mika"
+    }
+  ],
+  "memory_notes": [
+    {
+      "kind": "fact",
+      "text": "Mika offered the window seat and waited for an order.",
+      "entities": ["npc_mika"],
+      "confidence": 0.6
+    }
+  ],
+  "meta": {
+    "prompt_id": "turn",
+    "prompt_version": "0.3.1"
+  }
+}
