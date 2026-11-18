@@ -1,0 +1,60 @@
+# Format, analyze, and test the Flutter app and the pure-Dart packages.
+# Add further checks (license scanning, evals, build matrices) as new jobs
+# in this file. Keep them out of the steps below.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: format, analyze, test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: dart pub get
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze app
+        working-directory: app
+        run: flutter analyze
+
+      - name: Test app
+        working-directory: app
+        run: flutter test
+
+      - name: Analyze lingo_core
+        working-directory: packages/lingo_core
+        run: dart analyze
+
+      - name: Test lingo_core
+        working-directory: packages/lingo_core
+        run: dart test
+
+      - name: Analyze lingo_protocol
+        working-directory: packages/lingo_protocol
+        run: dart analyze
+
+      - name: Test lingo_protocol
+        working-directory: packages/lingo_protocol
+        run: dart test

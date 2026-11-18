@@ -1,0 +1,12 @@
+name: lingo_protocol
+description: API and LLM contracts for Lingowander (语遇). Pure Dart; no Flutter dependency.
+publish_to: "none"
+resolution: workspace
+version: 0.0.1
+
+environment:
+  sdk: ^3.14.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.0
