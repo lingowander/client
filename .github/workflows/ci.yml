@@ -1,6 +1,7 @@
 # Format, analyze, and test the Flutter app and the pure-Dart packages.
-# Add further checks (license scanning, evals, build matrices) as new jobs
-# in this file. Keep them out of the steps below.
+# License scanning is the separate workflow in license-scan.yml.
+# Add further checks (evals, build matrices) as new jobs in this file.
+# Keep them out of the steps below.
 
 name: CI
 

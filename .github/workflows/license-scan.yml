@@ -1,0 +1,99 @@
+# DRAFT (W1-03). Separate workflow: ci.yml keeps format/analyze/test, and
+# leaves licence scanning to this file (the job PR #1 deferred).
+# Policy text is not in this repo; it will live in lingowander/docs under
+# 50-compliance/. Config: tools/licenses/client-policy.json.
+# 含许可证变更，待 D-23 拍板；所有结论须法务确认。
+name: License scan
+
+on:
+  pull_request:
+    paths:
+      - "**/pubspec.yaml"
+      - "pubspec.lock"
+      - "tools/licenses/**"
+      - "assets/**"
+      - "REUSE.toml"
+      - "LICENSES/**"
+      - ".github/workflows/license-scan.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: license-scan-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-licenses:
+    name: dependency licences (GPLv3 distribution policy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies (workspace root)
+        run: dart pub get
+
+      # Pin the scanner: its detection output is the input of our policy check.
+      # Validated with very_good_cli 1.7.0 on Flutter 3.50.0 / Dart 3.14.0.
+      - name: Install very_good_cli
+        run: dart pub global activate very_good_cli 1.7.0
+
+      - name: Licence policy gate
+        run: |
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          python3 tools/licenses/check_client_licenses.py \
+            --policy tools/licenses/client-policy.json \
+            --out build/license-report/client
+
+      - name: THIRD_PARTY_NOTICES is up to date
+        if: ${{ hashFiles('THIRD_PARTY_NOTICES.md') != '' }}
+        run: python3 tools/licenses/gen_notices_client.py --check
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-license-report
+          path: build/license-report/
+          if-no-files-found: ignore
+
+  reuse-lint:
+    name: REUSE lint (assets and code headers)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # hashFiles() is not allowed in jobs.<id>.if. GitHub rejects the
+      # workflow before checkout, so the presence check lives in the step.
+      - name: Install reuse
+        run: |
+          if command -v pipx >/dev/null 2>&1; then
+            pipx install "reuse[charset-normalizer]==6.3.0"
+          else
+            python3 -m pip install --user "reuse[charset-normalizer]==6.3.0"
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
+
+      - name: reuse lint
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          if [ ! -f REUSE.toml ]; then
+            echo "REUSE.toml not present; skipping"
+            exit 0
+          fi
+          reuse lint
+
+      # No asset bytes yet, so the manifest template has zero data rows.
+      # --allow-empty accepts that. A real file that is not README.md,
+      # ASSETS.md, REUSE.toml, or *.license still fails the check.
+      - name: ASSETS.md matches the files on disk
+        if: ${{ hashFiles('assets/ASSETS.md') != '' }}
+        run: python3 tools/licenses/check_assets_manifest.py --manifest assets/ASSETS.md --root assets --allow-empty
