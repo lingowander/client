@@ -24,3 +24,30 @@ jobs:
         run: pip install -r packages/lingo_protocol/requirements.txt
       - name: Validate schema examples
         run: python3 packages/lingo_protocol/validate.py
+
+  dart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.14.1
+      - name: Install the schema validator
+        run: pip install -r packages/lingo_protocol/requirements.txt
+      - name: Install Dart packages
+        working-directory: packages/lingo_protocol
+        run: dart pub get
+      - name: Check generated types are current
+        run: python3 packages/lingo_protocol/tool/generate_types.py --check
+      - name: Format
+        working-directory: packages/lingo_protocol
+        run: dart format --output=none --set-exit-if-changed .
+      - name: Analyze
+        working-directory: packages/lingo_protocol
+        run: dart analyze --fatal-infos
+      - name: Test
+        working-directory: packages/lingo_protocol
+        run: dart test

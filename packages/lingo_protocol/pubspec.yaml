@@ -1,0 +1,12 @@
+name: lingo_protocol
+description: Immutable Dart types for the lingo_protocol v0 turn contracts.
+version: 0.0.0
+publish_to: none
+repository: https://github.com/lingowander/client
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.0

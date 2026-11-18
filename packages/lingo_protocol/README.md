@@ -1,6 +1,6 @@
 # lingo_protocol
 
-语遇 Lingowander 的回合契约，JSON Schema draft 2020-12，当前是 v0。客户端（Dart）和服务端（Go）以后可以从这里生成类型。本目录只放契约、样例和校验，不接模型服务，也不生成业务代码。
+语遇 Lingowander 的回合契约，JSON Schema draft 2020-12，当前是 v0。Dart 类型由 schema 生成，放在本目录。Go 类型还没有生成。本目录不接模型服务，样例都是虚构对白。
 
 三份载荷各自带 `$id` 和整数 `schema_version`。共享定义在 `common`，载荷用 `$ref` 引用。对象都写了 `additionalProperties: false`，字段是 snake_case。没有使用 `oneOf`、`anyOf` 或 `allOf`。
 
@@ -15,6 +15,9 @@
 | `examples/<契约>/valid_*.json` | 应当通过的样例。每份契约至少两个。 |
 | `examples/<契约>/invalid_*.json` | 应当被拒绝的样例。每份契约至少一个。 |
 | `validate.py` | 校验全部样例，并检查下面列出的对齐约定。 |
+| `lib/` | Dart 类型。`src/generated/` 由 schema 生成；`src/decode.dart` 和 `src/turn_id.dart` 是手写的。 |
+| `tool/generate_types.py` | 从 `schema/` 生成 Dart。`--check` 确认生成物没有过期。 |
+| `test/` | Dart 测试。正例要同时通过 JSON Schema 校验和类型往返，反例两边都拒绝。 |
 
 `turn_output` 的两个合法样例都是「咖馆开局」：中文母语的学习者在这一场说英语，NPC 是 `npc_mika`。样例是虚构对白，不是真实用户数据。
 
@@ -34,6 +37,19 @@ python3 packages/lingo_protocol/validate.py
 ```bash
 python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 ```
+
+Dart 类型在 `packages/lingo_protocol` 里检查。测试会调用上面的 Python 校验器，所以要先装 `requirements.txt`。
+
+```bash
+cd packages/lingo_protocol
+dart pub get
+python3 tool/generate_types.py --check
+dart format --output=none --set-exit-if-changed .
+dart analyze --fatal-infos
+dart test
+```
+
+没有运行时依赖。开发依赖是 `test` 和 `lints`，许可都是 BSD-3-Clause。JSON Schema 校验继续用已经在用的 Python `jsonschema`（MIT），只在开发和测试里调用。没有使用 pub.dev 上许可显示为 unknown 的 `json_schema` 包。
 
 ## 已对齐的约定
 
@@ -101,6 +117,31 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 | `targets[].scene_constraints` | 否 | `scene_ids` 用 `scene_id`，`beat_ids` 用普通标识。 |
 | `targets[].cooldown.min_scenes_between` | 否 | 至少隔开的场数。单位用「场」仍是提案。 |
 
+## Dart 类型
+
+线上字段保持 snake_case。Dart 字段用驼峰，`toJson` 写回原来的键。类型不可变：字段是 `final`，数组在构造时复制成不可修改的列表。`==` 和 `hashCode` 按字段值比较。
+
+`lines[].translation` 生成成 `String?`。省略该键解码为 `null`，编码时不再写出这个键。字段仍标注「待定：译文由谁生成」，类型没有替它决定译文从哪来。
+
+`turn_id` 用 `generateTurnId` 生成，得到带连字符的 UUID 第 4 版。请求对象不在这套 schema 里，所以这里只提供 id，不提供请求类型。`turn_output` 和 `turn_analysis` 回显这个 id；`weakness_plan` 没有这个字段。
+
+### 未知字段和未知枚举
+
+解码遇到契约外的数据时，策略是失败并指出位置，不是猜测、丢掉或改成默认值。信号是 `LingoProtocolException`。`path` 是 JSON Pointer；手写构造时则是字段名。调用方捕获之后应丢掉整份载荷。
+
+1. 未知字段：拒绝。异常里有字段名。不忽略，不放进扩展 map，也不参与 `toJson`。这和 schema 里的 `additionalProperties: false` 一致。
+2. 未知枚举：拒绝。异常里有原始字符串和允许的取值。不会把不认识的表情改成 `neutral`，也不会发明一个 unknown 哨兵。
+3. 错误的 `schema_name` 或 `schema_version`：拒绝。不按另一个版本解读。
+4. 类型、pattern、format、范围、`minItems`、`minProperties` 不满足：拒绝。
+5. 可选字段缺省：这是唯一保留下来的空缺。键不出现时解码为 `null`，编码时省略该键。JSON `null` 不合法，因为 schema 没有把这些字段标成可空。省略和空数组不是一回事，往返时保持原样。
+6. JSON 数字 `1` 和 `1.0` 在整数约束上看成同一个数，编码时写成整数。`type: number` 的字段在 Dart 里是 `double`。
+
+`format: uuid` 按本目录的校验脚本断言：必须是带连字符的 8-4-4-4-12 十六进制，不检查版本位。不接受去掉连字符，也不接受 `urn:uuid:` 前缀。
+
+整数若超出 Dart 能从 JSON 数字里精确还原的范围（约 ±2^53），解码直接拒绝，不四舍五入。schema 本身不设上界，这个限制写在这里，避免静默丢精度。
+
+生成器只实现 v0 schema 实际用到的关键字。schema 如果新出现 `oneOf`、`format` 以外的取值，或对象不再写 `additionalProperties: false`，生成脚本会失败，不会悄悄忽略。改完 schema 后重新生成，CI 用 `--check` 确认提交的 Dart 和 schema 一致。
+
 ## 版本策略
 
 `schema_version` 是每份契约自己的整数，从 0 开始。改一份契约只递增那一份，另外两份保持不动。不要在同一个整数下改变字段的含义。
@@ -119,11 +160,11 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 
 ## 生成 Dart 与 Go 类型
 
-这里只建议工具，本 PR 不生成代码。生成前把 `schema/` 下的四个文件一起交给生成器，让它按 `$id` 解析引用。如果某个生成器不会跨文件解析 URN，先把 `$ref` 打成单文件再生成，例如用 `@apidevtools/json-schema-ref-parser`。
+Dart 类型已经由 `tool/generate_types.py` 生成。脚本自己解析四个文件的 `$id` 和 URN `$ref`，不需要先把 schema 打成单文件。Go 仍然没有生成，下面只是建议：
 
 - Go 结构体：[atombender/go-jsonschema](https://github.com/atombender/go-jsonschema) 或 [omissis/go-jsonschema](https://github.com/omissis/go-jsonschema)。
 - Go 校验：[santhosh-tekuri/jsonschema](https://github.com/santhosh-tekuri/jsonschema) 的 v6 支持 draft 2020-12。技术方案只写了「jsonschema 库」，具体库还没定，这是建议。
-- Dart 结构体：先打包 `$ref`，再用 [quicktype](https://github.com/glideapps/quicktype) 的 `--lang dart --src-lang schema`。线上字段保持 snake_case；Dart 字段若用驼峰，用明确的 JSON 键注解对应，不要改线上名字。
-- 生成出来的类型不能代替校验。模型输出在两端都还要用 schema 再验一次。
+
+生成出来的 Dart 类型会拒绝封闭对象里的未知字段和未知枚举，但不能代替 schema 校验。模型输出在两端都还要用 schema 再验一次。Dart 测试因此会调用 `validate.py`。
 
 OpenAPI、Flutter 工程和 Go 模块不在本目录。仓库骨架由别的任务负责。
