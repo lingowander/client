@@ -12,7 +12,7 @@ Python 校验测试在 `tests/`，Dart 测试在 `test/`。两个目录只差一
 
 生成类型或做服务端校验之前，再给 `lines`、`choices`、`targets` 等数组加 `maxItems`，给 `text`、`translation`、`evidence` 等文本加 `maxLength`。这次没有加，因为文档没有规定这些上限。
 
-三份载荷各自带 `$id` 和整数 `schema_version`。共享定义在 `common`，载荷用 `$ref` 引用。对象都写了 `additionalProperties: false`，字段是 snake_case。没有使用 `oneOf`、`anyOf` 或 `allOf`。
+三份载荷各自带 `$id` 和整数 `schema_version`。共享定义在 `common`，载荷用 `$ref` 引用。对象都写了 `additionalProperties: false`，JSON 字段名是 snake_case。`$def` 名字用 PascalCase，给代码生成用：common 不加前缀，例如 `LangPair`、`PromptId`、`PromptVersion`、`SchemaName`；每份契约自己的 `$def` 加契约前缀，例如 `TurnOutputLine`、`TurnOutputMeta`、`TurnAnalysisObservation`、`WeaknessPlanCooldown`。没有使用 `oneOf`、`anyOf` 或 `allOf`。
 
 ## 目录
 
@@ -68,7 +68,7 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `schema_name` | 是 | 固定为 `turn_output`。 |
+| `schema_name` | 是 | 引用 common 的 `SchemaName`。样例填 `turn_output`。三份契约共用这个枚举，不在各文件里用 const 锁死。 |
 | `schema_version` | 是 | 整数 `0`。 |
 | `turn_id` | 是 | 回显客户端生成的 UUID。 |
 | `pair` | 是 | `{src, tgt}`。 |
@@ -81,7 +81,7 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 | `proposed_events` | 否 | `event_key` 与 `evidence`。`evidence_line_ids` 可选。这里用事件键，不用 `event_id`。 |
 | `image_requests` | 否 | `slot`（`background`、`expression`、`cg`）和 `priority`（`low`、`normal`）。可选 `npc_id`、`semantic_key`、`camera`。`slot` 取值 `expression` 表示立绘槽位，不是第二个表情字段。 |
 | `memory_notes` | 否 | `kind`、`text`、`entities`。`confidence` 可选。 |
-| `meta` | 是 | `prompt_id` 与 `prompt_version`。 |
+| `meta` | 是 | `prompt_id` 引用 `PromptId`，不带版本后缀。`prompt_version` 引用 `PromptVersion`。 |
 
 `lines` 和 `choices` 的 `text` 是玩家可见内容，里面不能出现学习元信息。schema 查不了这句话，要靠后续的语义校验。`proposed_events` 只是提议。
 
@@ -89,7 +89,7 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `schema_name` | 是 | 固定为 `turn_analysis`。 |
+| `schema_name` | 是 | 引用 `SchemaName`。样例填 `turn_analysis`。 |
 | `schema_version` | 是 | 整数 `0`。 |
 | `turn_id` | 是 | 回显本回合的 UUID。 |
 | `pair` | 是 | `{src, tgt}`。分析按这个语言对分桶。 |
@@ -103,7 +103,7 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `schema_name` | 是 | 固定为 `weakness_plan`。 |
+| `schema_name` | 是 | 引用 `SchemaName`。样例填 `weakness_plan`。 |
 | `schema_version` | 是 | 整数 `0`。 |
 | `pair` | 是 | `{src, tgt}`。 |
 | `targets` | 是 | 可为空。纯游戏样例就是空数组。空数组表示这一场不织入。 |

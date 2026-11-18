@@ -119,12 +119,28 @@ def check_schema_shape(schemas: dict[str, dict]) -> list[str]:
         if version.get("type") != "integer" or version.get("const") != 0:
             problems.append(f"{name}.schema_version must be an integer const 0")
         schema_name = schema.get("properties", {}).get("schema_name", {})
-        if schema_name.get("const") != name:
-            problems.append(f"{name}.schema_name const must be {name}")
+        schema_name_ref = "urn:lingowander:lingo_protocol:v0:common#/$defs/SchemaName"
+        if schema_name.get("$ref") != schema_name_ref:
+            problems.append(f"{name}.schema_name must $ref SchemaName")
+        if "const" in schema_name:
+            problems.append(f"{name}.schema_name must not lock a const; schema_version does")
+    prefixes = {
+        "turn_output": "TurnOutput",
+        "turn_analysis": "TurnAnalysis",
+        "weakness_plan": "WeaknessPlan",
+    }
+    for name, prefix in prefixes.items():
+        for def_name in schemas.get(name, {}).get("$defs", {}):
+            rest = def_name[len(prefix):] if def_name.startswith(prefix) else ""
+            if not rest or not rest[0].isupper():
+                problems.append(f"{name} $def {def_name} must be {prefix} plus a PascalCase name")
+    for def_name in schemas.get("common", {}).get("$defs", {}):
+        if not def_name[:1].isupper() or def_name.startswith(("TurnOutput", "TurnAnalysis", "WeaknessPlan")):
+            problems.append(f"common $def {def_name} must be PascalCase without a contract prefix")
     expression = (
         schemas.get("turn_output", {})
         .get("$defs", {})
-        .get("line", {})
+        .get("TurnOutputLine", {})
         .get("properties", {})
         .get("expression", {})
     )
@@ -204,12 +220,12 @@ def check_aligned_conventions(schemas: dict[str, dict], registry: Registry) -> l
     """Conventions agreed with the server. See the package README."""
     problems = []
     common = schemas["common"]["$defs"]
-    pair = common["pair"]
+    pair = common["LangPair"]
     if pair.get("required") != ["src", "tgt"]:
         problems.append("pair must require src and tgt")
     if set(pair.get("properties", {})) != {"src", "tgt"}:
         problems.append("pair properties must be exactly src and tgt")
-    if common["task_type"]["enum"] != [
+    if common["TaskType"]["enum"] != [
         "scene_plan",
         "turn",
         "bridge",
@@ -218,13 +234,21 @@ def check_aligned_conventions(schemas: dict[str, dict], registry: Registry) -> l
         "skeleton",
     ]:
         problems.append("task_type enum does not match the server alignment")
-    if common["scene_id"]["pattern"] != r"^s_[0-9]{4,}$":
-        problems.append("scene_id pattern drifted")
-    if common["lang_pair_key"]["pattern"] != (
+    if common["SceneId"]["pattern"] != r"^s_[0-9]{4,}$":
+        problems.append("SceneId pattern drifted")
+    if common["LangPairKey"]["pattern"] != (
         r"^[a-z]{2,3}(-[A-Za-z0-9]+)*>[a-z]{2,3}(-[A-Za-z0-9]+)*$"
     ):
-        problems.append("lang_pair_key pattern drifted")
-    for name in ("turn_id", "profile_id", "event_id"):
+        problems.append("LangPairKey pattern drifted")
+    if common["PromptId"]["pattern"] != r"^[a-z][a-z0-9_]*$":
+        problems.append("PromptId pattern drifted")
+    if common["PromptVersion"]["pattern"] != (
+        r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+    ):
+        problems.append("PromptVersion pattern drifted")
+    if common["SchemaName"]["enum"] != ["turn_output", "turn_analysis", "weakness_plan"]:
+        problems.append("SchemaName enum drifted")
+    for name in ("TurnId", "ProfileId", "EventId"):
         definition = common[name]
         if definition.get("type") != "string" or definition.get("format") != "uuid":
             problems.append(f"{name} must be a uuid string")
@@ -239,14 +263,14 @@ def check_aligned_conventions(schemas: dict[str, dict], registry: Registry) -> l
             problems.append(f"{name} must require turn_id")
     if "turn_id" in schemas["weakness_plan"]["properties"]:
         problems.append("weakness_plan does not echo turn_id")
-    line = schemas["turn_output"]["$defs"]["line"]
+    line = schemas["turn_output"]["$defs"]["TurnOutputLine"]
     if "translation" in line["required"]:
         problems.append("translation must stay optional")
     if "translation" not in line["properties"]:
         problems.append("translation should exist as an optional field")
     if "待定：译文由谁生成" not in line["properties"]["translation"].get("description", ""):
         problems.append("translation must be marked 待定：译文由谁生成")
-    budget = schemas["weakness_plan"]["$defs"]["target"]["properties"]["budget_per_scene"]
+    budget = schemas["weakness_plan"]["$defs"]["WeaknessPlanTarget"]["properties"]["budget_per_scene"]
     if budget.get("minimum") != 1:
         problems.append("budget_per_scene minimum must be 1; 0 is not defined as skipping a target")
     if "不织入" not in budget.get("description", ""):
@@ -254,17 +278,22 @@ def check_aligned_conventions(schemas: dict[str, dict], registry: Registry) -> l
 
     common_id = schemas["common"]["$id"]
     cases = [
-        (f"{common_id}#/$defs/lang_pair_key", "zh>en", True),
-        (f"{common_id}#/$defs/lang_pair_key", "zh-Hans>en", True),
-        (f"{common_id}#/$defs/lang_pair_key", "zh>zh", True),
-        (f"{common_id}#/$defs/lang_pair_key", "zh=zh", False),
-        (f"{common_id}#/$defs/scene_id", "s_0042", True),
-        (f"{common_id}#/$defs/scene_id", "s_cafe_opening", False),
-        (f"{common_id}#/$defs/pair", {"src": "zh", "tgt": "en"}, True),
-        (f"{common_id}#/$defs/pair", {"source_lang": "zh", "target_lang": "en"}, False),
-        (f"{common_id}#/$defs/turn_id", "00000000-0000-4000-8000-000000000001", True),
-        (f"{common_id}#/$defs/task_type", "turn", True),
-        (f"{common_id}#/$defs/task_type", "quiz", False),
+        (f"{common_id}#/$defs/LangPairKey", "zh>en", True),
+        (f"{common_id}#/$defs/LangPairKey", "zh-Hans>en", True),
+        (f"{common_id}#/$defs/LangPairKey", "zh>zh", True),
+        (f"{common_id}#/$defs/LangPairKey", "zh=zh", False),
+        (f"{common_id}#/$defs/SceneId", "s_0042", True),
+        (f"{common_id}#/$defs/SceneId", "s_cafe_opening", False),
+        (f"{common_id}#/$defs/LangPair", {"src": "zh", "tgt": "en"}, True),
+        (f"{common_id}#/$defs/LangPair", {"source_lang": "zh", "target_lang": "en"}, False),
+        (f"{common_id}#/$defs/TurnId", "00000000-0000-4000-8000-000000000001", True),
+        (f"{common_id}#/$defs/TaskType", "turn", True),
+        (f"{common_id}#/$defs/TaskType", "quiz", False),
+        (f"{common_id}#/$defs/PromptId", "turn", True),
+        (f"{common_id}#/$defs/PromptId", "turn@0.3.1", False),
+        (f"{common_id}#/$defs/PromptVersion", "0.3.1", True),
+        (f"{common_id}#/$defs/SchemaName", "turn_output", True),
+        (f"{common_id}#/$defs/SchemaName", "turn_output@1", False),
     ]
     for ref, instance, should_pass in cases:
         valid = accepts(registry, ref, instance)

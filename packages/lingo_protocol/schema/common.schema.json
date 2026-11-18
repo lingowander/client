@@ -2,85 +2,97 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:lingowander:lingo_protocol:v0:common",
   "title": "lingo_protocol_common",
-  "description": "lingo_protocol v0 的共享定义。本文件不是回合载荷，只提供 $defs。语言对、id、schema_version 的用法见 packages/lingo_protocol/README.md。存档迁移版本不在这里定义。",
+  "description": "lingo_protocol v0 的共享定义。本文件不是回合载荷，只提供 $defs。$def 名用 PascalCase，不加契约前缀。JSON 字段名仍是 snake_case。语言对、id、schema_version 的用法见 packages/lingo_protocol/README.md。存档迁移版本不在这里定义。",
   "$defs": {
-    "language_code": {
+    "LanguageCode": {
       "type": "string",
       "minLength": 2,
       "maxLength": 32,
       "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]+)*$",
-      "description": "语言代码。与 lang_pair_key 里 > 两侧的片段是同一种写法，例如 zh、en、zh-Hans。v0 不把首发语言收成枚举；首发只用哪些代码是产品配置，不是本定义的封闭列表。"
+      "description": "语言代码。与 LangPairKey 里 > 两侧的片段是同一种写法，例如 zh、en、zh-Hans。v0 不把首发语言收成枚举；首发只用哪些代码是产品配置，不是本定义的封闭列表。"
     },
-    "pair": {
+    "LangPair": {
       "type": "object",
       "additionalProperties": false,
       "required": ["src", "tgt"],
       "properties": {
         "src": {
-          "$ref": "#/$defs/language_code"
+          "$ref": "#/$defs/LanguageCode"
         },
         "tgt": {
-          "$ref": "#/$defs/language_code"
+          "$ref": "#/$defs/LanguageCode"
         }
       },
       "description": "语言对，与技术方案 2.5 的 {src, tgt} 一致。src 与 tgt 相同就是纯游戏。所有回合载荷都用这个对象，不用 zh>en 这种字符串。"
     },
-    "lang_pair_key": {
+    "LangPairKey": {
       "type": "string",
       "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]+)*>[a-z]{2,3}(-[A-Za-z0-9]+)*$",
-      "description": "由 pair 派生的分桶键，只在需要 map 键时使用，例如 zh>en、zh-Hans>en。分隔符固定为 >。文档里纯游戏有时写成 zh=zh，那个写法不是这个键；同语的派生键是 zh>zh。三份 v0 回合载荷没有 map 字段，因此没有引用本定义。"
+      "description": "由 LangPair 派生的分桶键，只在需要 map 键时使用，例如 zh>en、zh-Hans>en。分隔符固定为 >。文档里纯游戏有时写成 zh=zh，那个写法不是这个键；同语的派生键是 zh>zh。三份 v0 回合载荷没有 map 字段，因此没有引用本定义。"
     },
-    "turn_id": {
+    "TurnId": {
       "type": "string",
       "format": "uuid",
       "description": "回合 id。由客户端生成，放进请求，用于幂等和重放。turn_output 与 turn_analysis 必须回显同一个值。weakness_plan 不是单回合模型回显，不带这个字段。"
     },
-    "profile_id": {
+    "ProfileId": {
       "type": "string",
       "format": "uuid",
       "description": "档案 id。三份 v0 回合载荷不携带它。定义留在 common，供后续契约使用。"
     },
-    "event_id": {
+    "EventId": {
       "type": "string",
       "format": "uuid",
       "description": "事件 id。建议使用 UUIDv7，以便按时间排序。format uuid 不检查版本位，v0 不能靠 schema 拒绝其他版本的 UUID。三份 v0 回合载荷里的故事事件用 event_key，不使用本字段。"
     },
-    "scene_id": {
+    "SceneId": {
       "type": "string",
       "pattern": "^s_[0-9]{4,}$",
       "description": "场景 id，例如 s_0042。至少四位数字。"
     },
-    "id_token": {
+    "IdToken": {
       "type": "string",
       "minLength": 1,
       "maxLength": 64,
       "pattern": "^[a-z][a-z0-9_]*$",
-      "description": "小写标识。用于角色、台词、选项、节拍、薄弱点、语义键、descriptor、intent、prompt_id 和镜头标签。不是封闭词表。turn_id、profile_id、event_id 和 scene_id 不用这个形态。"
+      "description": "小写标识。用于角色、台词、选项、节拍、薄弱点、语义键、descriptor、intent 和镜头标签。不是封闭词表。TurnId、ProfileId、EventId、SceneId 和 PromptId 不用这个定义。"
     },
-    "event_key": {
+    "EventKey": {
       "type": "string",
       "minLength": 3,
       "maxLength": 64,
       "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-      "description": "故事事件键，至少两段、用点分开，例如 cafe.remembered_order。这不是 event_id。是否落在本场允许结算的事件键里，由代码做后续语义校验，不在本 schema 里列白名单。"
+      "description": "故事事件键，至少两段、用点分开，例如 cafe.remembered_order。这不是 EventId。是否落在本场允许结算的事件键里，由代码做后续语义校验，不在本 schema 里列白名单。"
     },
-    "task_type": {
+    "TaskType": {
       "type": "string",
       "enum": ["scene_plan", "turn", "bridge", "turn_analysis", "summarize", "skeleton"],
       "description": "已与服务端对齐的任务类型，供网关按任务路由。三份 v0 输出载荷不重复携带它；它属于请求。请求契约不在本 PR。"
     },
-    "prompt_version": {
+    "PromptId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "提示词 id，不带版本后缀，例如 turn。不要写成 turn@0.3.1。版本放在 PromptVersion。"
+    },
+    "PromptVersion": {
       "type": "string",
       "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
       "description": "提示词的语义化版本，例如 0.3.1。它和载荷里的 schema_version 是两套编号。文档里的 turn_output@1 不是本字段的取值。"
     },
-    "unit_interval": {
+    "SchemaName": {
+      "type": "string",
+      "enum": ["turn_output", "turn_analysis", "weakness_plan"],
+      "description": "回合载荷的类型名。三份契约的 schema_name 都引用本枚举。schema_version 仍由各契约自己的 const 锁定。文档写法 turn_output@1 不是本枚举的取值。"
+    },
+    "UnitInterval": {
       "type": "number",
       "minimum": 0,
       "maximum": 1,
       "description": "闭区间 0 到 1。技术方案示例里的 tension、severity、level_evidence 和 confidence 都是这个区间里的数，文档本身没有写值域。v0 按示例收成这个区间。这些数不是给玩家看的分数。"
     },
-    "observation_kind": {
+    "ObservationKind": {
       "type": "string",
       "enum": ["grammar", "lexical", "pragmatic", "pronunciation"],
       "description": "回合后分析的观察类别，取自技术方案 turn_analysis 示例。pronunciation 能否拿到证据，文档写明尚待核实，v0 仍保留这个枚举值。"

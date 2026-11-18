@@ -8,8 +8,8 @@
   "required": ["schema_name", "schema_version", "pair", "targets"],
   "properties": {
     "schema_name": {
-      "type": "string",
-      "const": "weakness_plan"
+      "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/SchemaName",
+      "description": "载荷类型名，取 SchemaName 枚举。样例填写 weakness_plan。schema_version 仍由本文件的 const 锁定。"
     },
     "schema_version": {
       "type": "integer",
@@ -17,29 +17,29 @@
       "description": "weakness_plan 自己的契约版本，整数，从 0 起独立递增。文档写法 weakness_plan@1 不是这个字段的值。这不是存档迁移版本。"
     },
     "pair": {
-      "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/pair",
+      "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/LangPair",
       "description": "这份计划属于哪一个语言对。技术方案示例没有这个字段，但薄弱档案按语言对分桶，计划必须自描述，避免串桶。src 与 tgt 相同表示纯游戏桶。本载荷不回显 turn_id。"
     },
     "targets": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/target"
+        "$ref": "#/$defs/WeaknessPlanTarget"
       },
       "description": "本场要编织的薄弱点。可以是空数组。schema 不强制学习桶非空，也不强制纯游戏桶为空。"
     }
   },
   "$defs": {
-    "target": {
+    "WeaknessPlanTarget": {
       "type": "object",
       "additionalProperties": false,
       "required": ["weakness_id", "strategy", "budget_per_scene"],
       "properties": {
         "weakness_id": {
-          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/id_token",
+          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/IdToken",
           "description": "薄弱点 id，例如 w12。"
         },
         "kind": {
-          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/observation_kind",
+          "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/ObservationKind",
           "description": "可选。薄弱点类别，复用分析观察的四类。语言层数据里有类别，但注入计划示例没有这个字段，所以 v0 可选。"
         },
         "strategy": {
@@ -53,16 +53,16 @@
           "description": "这一场允许编织该薄弱点的次数，也就是频次上限，至少为 1。文档没有把 0 定义成「本场不织入」；这一场不织入时用空的 targets，而不是把预算写成 0。技术方案示例值为 1。v0 不把 1 写成默认值，也不设置上界。"
         },
         "scene_constraints": {
-          "$ref": "#/$defs/scene_constraints",
+          "$ref": "#/$defs/WeaknessPlanSceneConstraints",
           "description": "可选。出现场景约束。技术方案的计划示例没有这个对象；任务需要携带约束，而文档没有定义合法场景列表。v0 只运送已有的 scene id 和 beat id，不解释它们。"
         },
         "cooldown": {
-          "$ref": "#/$defs/cooldown",
+          "$ref": "#/$defs/WeaknessPlanCooldown",
           "description": "可选。冷却。语言层有下次编织时间和复习安排，但没有字段形状，间隔算法也未定。v0 只留一个可选下界，不实现间隔算法。"
         }
       }
     },
-    "scene_constraints": {
+    "WeaknessPlanSceneConstraints": {
       "type": "object",
       "additionalProperties": false,
       "minProperties": 1,
@@ -71,7 +71,7 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/scene_id"
+            "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/SceneId"
           },
           "description": "允许出现的场景 id，形态为 s_ 加至少四位数字。"
         },
@@ -79,13 +79,13 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/id_token"
+            "$ref": "urn:lingowander:lingo_protocol:v0:common#/$defs/IdToken"
           },
           "description": "允许出现的节拍 id。"
         }
       }
     },
-    "cooldown": {
+    "WeaknessPlanCooldown": {
       "type": "object",
       "additionalProperties": false,
       "required": ["min_scenes_between"],
