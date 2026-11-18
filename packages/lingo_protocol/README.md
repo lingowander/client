@@ -1,6 +1,16 @@
 # lingo_protocol
 
-语遇 Lingowander 的回合契约，JSON Schema draft 2020-12，当前是 v0。客户端（Dart）和服务端（Go）以后可以从这里生成类型。本目录只放契约、样例和校验，不接模型服务，也不生成业务代码。
+语遇的接口与模型输出契约。这是一个纯 Dart 包，不依赖 Flutter。
+
+Dart 占位包仍在：`lib/lingo_protocol.dart` 和 `test/lingo_protocol_test.dart` 还是占位库和它的单元测试，没有生成的 Dart 客户端。服务端实现在配套的私有 Go 仓库，不在这里。
+
+JSON Schema draft 2020-12 的 v0 放在 `schema/`。`validate.py` 和它的 Python 依赖只在开发时用来校验样例，不进入客户端运行时，也不是这个 Dart 包的依赖。
+
+Python 校验测试在 `tests/`，Dart 测试在 `test/`。两个目录只差一个字母：`dart test` 只跑 `test/`，`validate.py` 只跑 schema 样例，`tests/` 是这条 Python 检查的入口。
+
+`lines[].expression` 的六值枚举，以及「译文由谁生成」，都还是提案。评审通过前，客户端和服务端都不要把它们硬编码进业务逻辑。
+
+生成类型或做服务端校验之前，再给 `lines`、`choices`、`targets` 等数组加 `maxItems`，给 `text`、`translation`、`evidence` 等文本加 `maxLength`。这次没有加，因为文档没有规定这些上限。
 
 三份载荷各自带 `$id` 和整数 `schema_version`。共享定义在 `common`，载荷用 `$ref` 引用。对象都写了 `additionalProperties: false`，字段是 snake_case。没有使用 `oneOf`、`anyOf` 或 `allOf`。
 
@@ -8,13 +18,16 @@
 
 | 路径 | 作用 |
 | --- | --- |
+| `lib/`、`test/` | Dart 占位包和它的单元测试。 |
 | `schema/common.schema.json` | 语言对、id、`task_type` 等共享定义。它本身不是一份回合载荷。 |
 | `schema/turn_output.schema.json` | 对白模型每一回合的输出。 |
 | `schema/turn_analysis.schema.json` | 回合后分析。 |
 | `schema/weakness_plan.schema.json` | 无感薄弱点注入计划。 |
 | `examples/<契约>/valid_*.json` | 应当通过的样例。每份契约至少两个。 |
-| `examples/<契约>/invalid_*.json` | 应当被拒绝的样例。每份契约至少一个。 |
-| `validate.py` | 校验全部样例，并检查下面列出的对齐约定。 |
+| `examples/<契约>/invalid_*.json` | 应当被拒绝的样例。每份契约至少一个，并写明预期的错误路径。 |
+| `validate.py` | 校验全部样例，并检查对齐约定。只在开发时运行。 |
+| `tests/` | 调用 `validate.py` 的 Python 测试。不是 Dart 的 `test/`。 |
+| `constraints.txt` | Python 校验依赖的精确版本，含传递依赖。 |
 
 `turn_output` 的两个合法样例都是「咖馆开局」：中文母语的学习者在这一场说英语，NPC 是 `npc_mika`。样例是虚构对白，不是真实用户数据。
 
@@ -23,11 +36,11 @@
 在客户端仓库根目录执行：
 
 ```bash
-pip install -r packages/lingo_protocol/requirements.txt
+pip install -c packages/lingo_protocol/constraints.txt -r packages/lingo_protocol/requirements.txt
 python3 packages/lingo_protocol/validate.py
 ```
 
-合法样例必须通过，非法样例必须失败。脚本只用 Python 和 `jsonschema`（开发依赖，MIT，不进客户端运行时），不访问网络，也不调用模型。
+合法样例必须通过。非法样例必须在预期的字段路径上、用预期的 validator 失败；因为别的原因失败不算通过。脚本只用 Python 和 `constraints.txt` 里固定的开发依赖，不访问网络，也不调用模型。
 
 同一套检查也可以这样跑：
 
@@ -61,7 +74,7 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 | `pair` | 是 | `{src, tgt}`。 |
 | `speaker` | 是 | 说话角色 id，例如 `npc_mika`。 |
 | `lines` | 是 | 至少一句。每句含 `line_id`、`lang`、`text`、`expression`。`translation` 可选。 |
-| `lines[].expression` | 是 | 提案，待评审。只保留这一个表情字段，枚举为 `neutral`、`smile`、`happy`、`surprised`、`sad`、`troubled`。 |
+| `lines[].expression` | 是 | 提案，待评审。只保留这一个表情字段，枚举为 `neutral`、`smile`、`happy`、`surprised`、`sad`、`troubled`。评审通过前不要在客户端或服务端硬编码。 |
 | `choices` | 否 | 选项。每项含 `id`、`lang`、`text`、`intent`。 |
 | `input_mode_hint` | 否 | `voice`、`typing`、`word_choice`。 |
 | `scene_state` | 是 | `beat_id`、`goal_progress`（`advancing`、`stalled`、`resolved`）、`tension`。`next_beat_hint` 可选。 |
@@ -93,10 +106,10 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 | `schema_name` | 是 | 固定为 `weakness_plan`。 |
 | `schema_version` | 是 | 整数 `0`。 |
 | `pair` | 是 | `{src, tgt}`。 |
-| `targets` | 是 | 可为空。纯游戏样例就是空数组。 |
+| `targets` | 是 | 可为空。纯游戏样例就是空数组。空数组表示这一场不织入。 |
 | `targets[].weakness_id` | 是 | 薄弱点 id。 |
 | `targets[].strategy` | 是 | `npc_reuses_form`、`goal_requires`、`prop_in_scene`。 |
-| `targets[].budget_per_scene` | 是 | 这一场的次数上限。示例值 1 不是 schema 默认值。 |
+| `targets[].budget_per_scene` | 是 | 这一场的次数上限，至少为 1。0 不表示「本场不织入」。示例值 1 不是 schema 默认值，也没有上界。 |
 | `targets[].kind` | 否 | 与分析观察相同的四类。 |
 | `targets[].scene_constraints` | 否 | `scene_ids` 用 `scene_id`，`beat_ids` 用普通标识。 |
 | `targets[].cooldown.min_scenes_between` | 否 | 至少隔开的场数。单位用「场」仍是提案。 |
@@ -119,11 +132,11 @@ python3 -m unittest packages/lingo_protocol/tests/test_examples.py
 
 ## 生成 Dart 与 Go 类型
 
-这里只建议工具，本 PR 不生成代码。生成前把 `schema/` 下的四个文件一起交给生成器，让它按 `$id` 解析引用。如果某个生成器不会跨文件解析 URN，先把 `$ref` 打成单文件再生成，例如用 `@apidevtools/json-schema-ref-parser`。
+这里只建议工具，本目录里的 Dart 库仍是占位，没有生成代码。生成前把 `schema/` 下的四个文件一起交给生成器，让它按 `$id` 解析引用。如果某个生成器不会跨文件解析 URN，先把 `$ref` 打成单文件再生成，例如用 `@apidevtools/json-schema-ref-parser`。生成前还要补上前面说的 `maxItems` 和 `maxLength`。
 
 - Go 结构体：[atombender/go-jsonschema](https://github.com/atombender/go-jsonschema) 或 [omissis/go-jsonschema](https://github.com/omissis/go-jsonschema)。
 - Go 校验：[santhosh-tekuri/jsonschema](https://github.com/santhosh-tekuri/jsonschema) 的 v6 支持 draft 2020-12。技术方案只写了「jsonschema 库」，具体库还没定，这是建议。
 - Dart 结构体：先打包 `$ref`，再用 [quicktype](https://github.com/glideapps/quicktype) 的 `--lang dart --src-lang schema`。线上字段保持 snake_case；Dart 字段若用驼峰，用明确的 JSON 键注解对应，不要改线上名字。
 - 生成出来的类型不能代替校验。模型输出在两端都还要用 schema 再验一次。
 
-OpenAPI、Flutter 工程和 Go 模块不在本目录。仓库骨架由别的任务负责。
+OpenAPI 生成的 Dart 客户端还没有。服务端实现不在这个仓库。

@@ -49,8 +49,8 @@
         },
         "budget_per_scene": {
           "type": "integer",
-          "minimum": 0,
-          "description": "这一场允许编织该薄弱点的次数，也就是频次上限。技术方案示例值为 1。v0 不把 1 写成默认值，也不设置上界。"
+          "minimum": 1,
+          "description": "这一场允许编织该薄弱点的次数，也就是频次上限，至少为 1。文档没有把 0 定义成「本场不织入」；这一场不织入时用空的 targets，而不是把预算写成 0。技术方案示例值为 1。v0 不把 1 写成默认值，也不设置上界。"
         },
         "scene_constraints": {
           "$ref": "#/$defs/scene_constraints",

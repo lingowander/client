@@ -1,0 +1,35 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/doc/api/
+.widget_preview/
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Machine-local Android SDK path
+**/local.properties
+
+# OS / editor
+.DS_Store
+*.swp
+.atom/
+.history
+
+# Symbolication / obfuscation
+app.*.symbols
+app.*.map.json
+
+# Misc
+*.class
+*.log
+*.pyc

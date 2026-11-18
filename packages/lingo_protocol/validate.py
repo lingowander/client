@@ -29,6 +29,20 @@ PAYLOAD_SCHEMAS = ("turn_output", "turn_analysis", "weakness_plan")
 EXPRESSION_ENUM = ("neutral", "smile", "happy", "surprised", "sad", "troubled")
 FORBIDDEN_COMBINATORS = ("oneOf", "anyOf", "allOf")
 
+# Each invalid example must fail at these paths and validators, and nowhere else.
+# A sample that fails for a different reason does not count as a pass.
+EXPECTED_INVALID = {
+    "examples/turn_output/invalid_expression.json": (
+        (("lines", 0, "expression"), "enum"),
+    ),
+    "examples/turn_analysis/invalid_kind.json": (
+        (("observations", 0, "kind"), "enum"),
+    ),
+    "examples/weakness_plan/invalid_strategy.json": (
+        (("targets", 0, "strategy"), "enum"),
+    ),
+}
+
 
 def load_json(path: Path):
     with path.open(encoding="utf-8") as handle:
@@ -122,6 +136,16 @@ def check_schema_shape(schemas: dict[str, dict]) -> list[str]:
     return problems
 
 
+def error_signature(error) -> tuple[tuple, str]:
+    return (tuple(error.absolute_path), error.validator)
+
+
+def format_signature(signature: tuple[tuple, str]) -> str:
+    path, validator = signature
+    location = "/".join(str(part) for part in path) or "<root>"
+    return f"{location} ({validator})"
+
+
 def check_examples(schemas: dict[str, dict], registry: Registry) -> list[str]:
     problems = []
     for name in PAYLOAD_SCHEMAS:
@@ -147,10 +171,17 @@ def check_examples(schemas: dict[str, dict], registry: Registry) -> list[str]:
                     print(f"PASS {relative}")
             elif path.name.startswith("invalid_"):
                 invalid_count += 1
-                if errors:
-                    print(f"PASS {relative} rejected ({errors[0].validator})")
+                actual = tuple(sorted(error_signature(error) for error in errors))
+                expected = tuple(sorted(EXPECTED_INVALID.get(relative, ())))
+                if relative not in EXPECTED_INVALID:
+                    problems.append(f"no expected error is declared for {relative}")
+                elif actual != expected:
+                    problems.append(
+                        f"{relative} errors were {[format_signature(item) for item in actual]}, "
+                        f"expected {[format_signature(item) for item in expected]}"
+                    )
                 else:
-                    problems.append(f"expected rejection, but it passed: {relative}")
+                    print(f"PASS {relative} rejected at {format_signature(expected[0])}")
             else:
                 problems.append(f"example name must start with valid_ or invalid_: {relative}")
         if valid_count < 2:
@@ -215,6 +246,11 @@ def check_aligned_conventions(schemas: dict[str, dict], registry: Registry) -> l
         problems.append("translation should exist as an optional field")
     if "待定：译文由谁生成" not in line["properties"]["translation"].get("description", ""):
         problems.append("translation must be marked 待定：译文由谁生成")
+    budget = schemas["weakness_plan"]["$defs"]["target"]["properties"]["budget_per_scene"]
+    if budget.get("minimum") != 1:
+        problems.append("budget_per_scene minimum must be 1; 0 is not defined as skipping a target")
+    if "不织入" not in budget.get("description", ""):
+        problems.append("budget_per_scene must say that 0 does not mean skipping the target")
 
     common_id = schemas["common"]["$id"]
     cases = [
@@ -246,23 +282,40 @@ def check_expression_rules(schemas: dict[str, dict], registry: Registry) -> list
 
     warm = copy.deepcopy(opening)
     warm["lines"][0]["expression"] = "warm"
-    warm_errors = list(validator.iter_errors(warm))
-    if not any(error.validator == "enum" for error in warm_errors):
-        problems.append("expression warm must fail the expression enum")
+    warm_errors = tuple(sorted(error_signature(error) for error in validator.iter_errors(warm)))
+    if warm_errors != ((("lines", 0, "expression"), "enum"),):
+        problems.append(f"expression warm must fail only at lines/0/expression enum, got {warm_errors}")
 
     aliased = copy.deepcopy(opening)
     aliased["lines"][0]["emotion"] = aliased["lines"][0].pop("expression")
-    alias_errors = list(validator.iter_errors(aliased))
-    if not any(error.validator == "additionalProperties" for error in alias_errors):
-        problems.append("the emotion field must be rejected")
-    if not any(error.validator == "required" for error in alias_errors):
-        problems.append("removing expression must fail as a missing required field")
+    alias_errors = tuple(sorted(error_signature(error) for error in validator.iter_errors(aliased)))
+    expected_alias = tuple(
+        sorted(
+            (
+                (("lines", 0), "additionalProperties"),
+                (("lines", 0), "required"),
+            )
+        )
+    )
+    if alias_errors != expected_alias:
+        problems.append(f"emotion alias must fail only as listed, got {alias_errors}")
 
     legacy = copy.deepcopy(opening)
     legacy["schema"] = "turn_output@1"
-    legacy_errors = list(validator.iter_errors(legacy))
-    if not any(error.validator == "additionalProperties" for error in legacy_errors):
-        problems.append("the legacy schema string field must be rejected")
+    legacy_errors = tuple(sorted(error_signature(error) for error in validator.iter_errors(legacy)))
+    if legacy_errors != (((), "additionalProperties"),):
+        problems.append(f"legacy schema field must fail only at the root, got {legacy_errors}")
+
+    plan = load_json(EXAMPLES_DIR / "weakness_plan" / "valid_zh_en_cafe.json")
+    plan["targets"][0]["budget_per_scene"] = 0
+    budget_errors = tuple(
+        sorted(
+            error_signature(error)
+            for error in validator_for(schemas["weakness_plan"], registry).iter_errors(plan)
+        )
+    )
+    if budget_errors != ((("targets", 0, "budget_per_scene"), "minimum"),):
+        problems.append(f"budget 0 must fail only minimum at targets/0/budget_per_scene, got {budget_errors}")
     return problems
 
 
