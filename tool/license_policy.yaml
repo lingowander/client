@@ -1,0 +1,54 @@
+# 临时白名单，待 W1-03 定稿后对齐。
+# W1-03 定稿前，本文件不作为正式许可证政策。
+#
+# 识别库是 pana 自带的 SPDX 文本（见 docs/license-scan.md）。
+# 标识符用该语料的文件名，例如 GPL-3.0，而不是 GPL-3.0-only。
+# pana 不能区分 GPL-2.0-only 与 GPL-2.0-or-later，两者都会标成 GPL-2.0。
+# GPL-2.0-only 不能与 GPL-3.0-only 组合，因此 GPL-2.0 不在允许列表里。
+# 若某个依赖经人工确认是 GPL-2.0-or-later，再写入 exceptions 并说明依据。
+#
+# exceptions 列出需要人工审查的许可（例如 MPL-2.0）。
+# 每条必须包含 package（包名）、license（许可）、reason（引入理由）。
+# MPL-2.0 当前没有条目。
+
+permittedLicenses:
+  # 宽松许可，FSF 认为可与 GPL-3.0 组合。
+  - MIT
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - Apache-2.0
+  - ISC
+  - Zlib
+  # GPL-3.0 兼容的 copyleft。AGPL-3.0 与 GPL-3.0 可以组合，组合结果受 AGPL-3.0 约束。
+  # LGPL-2.1 可以通过其第 3 条改为 GPL。LGPL-2.0 与 GPL-3.0 不兼容，不在此列。
+  - GPL-3.0
+  - LGPL-2.1
+  - LGPL-3.0
+  - AGPL-3.0
+  # Flutter 引擎第三方声明里出现的宽松许可，FSF 将它们视为可与 GPL-3.0 组合。
+  # 标识符沿用 pana 语料的文件名。
+  - MIT-0
+  - MIT-Modern-Variant
+  - MIT-open-group
+  - BSL-1.0
+  - ECL-2.0
+  - ICU
+  - FTL
+  - SGI-B-2.0
+  - NAIST-2003
+  - NCSA
+  - libpng-2.0
+  - Unicode-DFS-2016
+  # 历史许可声明和公有领域没有版权保留，可与 GPL-3.0 组合。
+  - HPND
+  - CC0-1.0
+  - public-domain
+
+exceptions:
+  - package: sky_engine
+    license: LicenseRef-NVIDIA-2002
+    reason: >
+      Flutter 引擎第三方声明里的 glslang 含有 2002 年 NVIDIA 版权许可：
+      允许使用、修改和再分发，必须保留声明，不授予专利或商标。
+      它不是 MIT、BSD 或 Apache 的标准文本。W1-03 定稿前单独保留为例外，
+      不并入自动允许列表。

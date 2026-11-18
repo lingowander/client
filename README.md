@@ -42,7 +42,7 @@ Flutter 应用在 `app/`，不在仓库根目录。根目录的 `pubspec.yaml` �
 
 ## 运行与测试
 
-需要 [Flutter](https://docs.flutter.dev/install) stable（自带对应版本的 Dart）。在仓库根目录：
+需要 [Flutter](https://docs.flutter.dev/install) 3.50.0（Dart 3.14.0，与 `app/.metadata` 和持续集成一致）。在仓库根目录：
 
 ```bash
 dart pub get
@@ -59,7 +59,7 @@ cd packages/lingo_core && dart analyze && dart test
 cd packages/lingo_protocol && dart analyze && dart test
 ```
 
-后两条里的 `cd` 从仓库根目录算起。应用使用 `flutter_lints`，两个纯 Dart 包使用 `lints`。
+后两条里的 `cd` 从仓库根目录算起。应用使用 `flutter_lints`，两个纯 Dart 包使用 `lints`。依赖许可扫描的临时规则和运行方式见 [docs/license-scan.md](docs/license-scan.md)。持续集成还会构建 Android debug APK 和 Linux 桌面调试包。
 
 ## 配套服务端
 

@@ -1,24 +1,32 @@
-# Format, analyze, and test the Flutter app and the pure-Dart packages.
-# Add further checks (license scanning, evals, build matrices) as new jobs
-# in this file. Keep them out of the steps below.
+# Format, analyze, test, scan dependency licenses, and build the app.
+# Flutter is pinned to the stable revision recorded in app/.metadata
+# (3.50.0, ab2912035e160d9cad6306df307576da6128ebdb, Dart 3.14.0).
+# Push runs only on main. Pull requests cover topic branches, so one commit
+# is not built twice.
 
 name: CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
+env:
+  FLUTTER_VERSION: "3.50.0"
+
 jobs:
   check:
     name: format, analyze, test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,6 +35,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
       - name: Resolve dependencies
@@ -58,3 +67,81 @@ jobs:
       - name: Test lingo_protocol
         working-directory: packages/lingo_protocol
         run: dart test
+
+  license-scan:
+    name: license scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Resolve workspace
+        run: dart pub get
+
+      - name: Test the scanner
+        working-directory: tool/license_scan
+        run: |
+          dart pub get
+          dart analyze
+          dart test
+
+      - name: Scan workspace dependency licenses
+        working-directory: tool/license_scan
+        run: dart run bin/check_licenses.dart --repo-root ../.. --label workspace
+
+      - name: Scan scanner dependency licenses
+        working-directory: tool/license_scan
+        run: >
+          dart run bin/check_licenses.dart
+          --repo-root ../..
+          --package-config .dart_tool/package_config.json
+          --lock pubspec.lock
+          --label license_scan
+          --allow-absent-exceptions
+
+  build:
+    name: build android and linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install Linux desktop build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev g++ libstdc++-14-dev
+
+      - name: Resolve dependencies
+        run: dart pub get
+
+      - name: Build Android debug APK
+        working-directory: app
+        run: |
+          # The Flutter template asks Gradle for an 8G heap. Keep that file for
+          # local machines, and give the hosted runner a smaller heap.
+          sed -i \
+            -e 's/-Xmx8G/-Xmx2G/' \
+            -e 's/MaxMetaspaceSize=4G/MaxMetaspaceSize=512m/' \
+            -e 's/ReservedCodeCacheSize=512m/ReservedCodeCacheSize=256m/' \
+            android/gradle.properties
+          flutter build apk --debug
+
+      - name: Build Linux debug bundle
+        working-directory: app
+        run: flutter build linux --debug

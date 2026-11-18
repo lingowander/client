@@ -14,7 +14,7 @@ External pull requests are not accepted until a CLA or DCO policy is decided. A 
 
 ## 开发环境
 
-1. 安装 Flutter stable（含 Dart）。版本与持续集成一致，使用 stable 渠道，不固定某个补丁号。
+1. 安装 Flutter 3.50.0（Dart 3.14.0）。持续集成锁定这个稳定版补丁，不跟随浮动的 `stable` 渠道。
 2. 克隆本仓库，在根目录执行 `dart pub get`。根目录是 pub workspace，不要在子目录单独维护另一份锁文件。
 3. 运行应用：`cd app && flutter run`。组织标识为 `com.lingowander`。
 
@@ -34,6 +34,8 @@ dart format --output=none --set-exit-if-changed .
 ( cd app && flutter analyze && flutter test )
 ( cd packages/lingo_core && dart analyze && dart test )
 ( cd packages/lingo_protocol && dart analyze && dart test )
+( cd tool/license_scan && dart pub get && dart analyze && dart test )
+( cd tool/license_scan && dart run bin/check_licenses.dart --repo-root ../.. )
 ```
 
 - 格式以 `dart format` 为准。
