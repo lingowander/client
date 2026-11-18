@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Lingowander
+# 本文件以 GNU General Public License v3.0 授权（仅此版本）。
+
+__pycache__/
+*.pyc

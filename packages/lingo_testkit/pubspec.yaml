@@ -1,0 +1,20 @@
+name: lingo_testkit
+description: Property-test skeleton for Lingowander (语遇). Reference ledgers only; no game rules.
+publish_to: "none"
+resolution: workspace
+version: 0.0.1
+
+environment:
+  sdk: ^3.14.0
+
+dependencies:
+  lingo_core:
+    path: ../lingo_core
+  lingo_protocol:
+    path: ../lingo_protocol
+
+dev_dependencies:
+  # BSD-3-Clause. glados cannot resolve on Dart 3 (sdk <3.0.0).
+  dartproptest: ^0.2.1
+  lints: ^6.0.0
+  test: ^1.26.0

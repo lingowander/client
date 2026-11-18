@@ -10,3 +10,4 @@ workspace:
   - app
   - packages/lingo_core
   - packages/lingo_protocol
+  - packages/lingo_testkit

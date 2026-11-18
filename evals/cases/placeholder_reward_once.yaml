@@ -1,0 +1,91 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Lingowander
+#
+# 语遇 Lingowander 客户端的一部分。
+# 本文件以 GNU General Public License v3.0 授权（仅此版本）。
+# 完整文本见仓库根目录 LICENSE。
+
+schema_version: "0"
+id: placeholder.reward-once.001
+title: "PLACEHOLDER：同一 reward_key 只结算一次"
+description: "PLACEHOLDER 用例。打字路径提交一句占位问候。F07 只示范功能编号格式，尚未与 PRD 核对。依赖 lingo_protocol 草案，字段待 W1-04 定稿后对齐。"
+data_status: placeholder
+protocol:
+  status: draft
+  depends_on: lingo_protocol
+  align_after: W1-04
+  referenced_schemas:
+    - turn_output
+  note: "依赖 lingo_protocol 草案。turn_output 的字段尚未定稿，本用例只引用名字，待 W1-04 合并后对齐。"
+prd_features:
+  - F07
+tags:
+  - reward
+  - language-pair
+  - budget
+  - typing
+  - placeholder
+language_pair:
+  source: zh
+  target: en
+scene:
+  scene_id: placeholder.scene.cafe
+  summary: "PLACEHOLDER 场景：咖啡馆问候"
+  world_state:
+    location_id: placeholder.location.cafe
+    flags:
+      - placeholder.flag.none
+  character_state:
+    character_id: placeholder.npc.barista
+    display_name: PLACEHOLDER_NPC
+    mood: PLACEHOLDER_MOOD
+    facts:
+      - PLACEHOLDER_FACT
+input:
+  path: typing
+  player_text: PLACEHOLDER_TYPING_问候
+runtime:
+  provider: mock
+  seed: 7
+  mode: replay
+  fixture_id: placeholder.fixture.reward-once
+expectations:
+  deterministic:
+    - type: schema_conforms
+      target: turn_output
+      note: "输出结构必须对得上草案名 turn_output。不检查句子怎么写。"
+    - type: required_fields
+      target: turn_output
+      fields:
+        - turn_id
+        - utterances
+      note: "turn_id 与 utterances 是占位字段名，不能当成已定稿协议。"
+    - type: reward_key_once
+      reward_key: placeholder.reward.greeting
+      note: "重复提交、乱序到达、换语言重放和重玩都不得让这个 key 再结算一次。"
+    - type: language_pair_isolation
+      source: zh
+      target: en
+      expect_learning_profile: true
+      note: "学习档案只写入 zh 到 en 这一桶。"
+    - type: forbidden_content
+      surfaces:
+        - structured_fields
+        - player_visible_text
+      kinds:
+        - score
+        - level
+        - percentage
+      note: "结构化字段和玩家可见文本都不得出现分数、等级、百分比。"
+    - type: length_budget
+      target: player_visible_text
+      max_chars: 280
+      unit: unicode_scalars
+      note: "280 是占位字数预算，按 Unicode 标量值计数，不是产品指标。"
+  scored:
+    - type: llm_judge
+      rubric_id: placeholder.rubric.naturalness
+      provider: mock
+      dimension: placeholder.dimension.naturalness
+      record_only: true
+      note: "评分只记录。不设通过阈值，不参与确定性门禁，不断言措辞。"

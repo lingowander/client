@@ -1,0 +1,60 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Lingowander
+# schema 能通过，但纯游戏桶错误地期望学习档案。不是正式用例。
+
+schema_version: "0"
+id: placeholder.invalid.pure-game-profile
+title: "PLACEHOLDER：纯游戏却期望学习档案"
+description: "PLACEHOLDER 反例，源语言等于目标语言时不应产生学习档案"
+data_status: placeholder
+protocol:
+  status: draft
+  depends_on: lingo_protocol
+  align_after: W1-04
+  referenced_schemas:
+    - turn_output
+    - weakness_plan
+  note: "占位反例"
+prd_features:
+  - F07
+tags:
+  - pure-game
+  - language-pair
+  - placeholder
+language_pair:
+  source: zh
+  target: zh
+scene:
+  scene_id: placeholder.scene.invalid
+  summary: "PLACEHOLDER 反例场景"
+  world_state:
+    location_id: placeholder.location.invalid
+  character_state:
+    character_id: placeholder.npc.invalid
+    display_name: PLACEHOLDER_NPC
+input:
+  path: word_pick
+  tokens:
+    - PLACEHOLDER_TOKEN
+runtime:
+  provider: mock
+  seed: 1
+  mode: replay
+expectations:
+  deterministic:
+    - type: schema_conforms
+      target: turn_output
+    - type: schema_absent
+      target: weakness_plan
+    - type: language_pair_isolation
+      source: zh
+      target: zh
+      expect_learning_profile: true
+    - type: forbidden_content
+      surfaces:
+        - structured_fields
+        - player_visible_text
+      kinds:
+        - score
+        - level
+        - percentage

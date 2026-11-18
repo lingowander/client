@@ -34,10 +34,13 @@ dart format --output=none --set-exit-if-changed .
 ( cd app && flutter analyze && flutter test )
 ( cd packages/lingo_core && dart analyze && dart test )
 ( cd packages/lingo_protocol && dart analyze && dart test )
+( cd packages/lingo_testkit && dart analyze && dart test )
+python3 evals/tools/validate_cases.py
 ```
 
 - 格式以 `dart format` 为准。
 - `app/` 使用 [flutter_lints](https://pub.dev/packages/flutter_lints)（`app/analysis_options.yaml`）。
-- `packages/lingo_core` 与 `packages/lingo_protocol` 是纯 Dart 包，使用 [lints](https://pub.dev/packages/lints) 的 recommended 规则，并且不得依赖 Flutter。
+- `packages/lingo_core`、`packages/lingo_protocol` 与 `packages/lingo_testkit` 是纯 Dart 包，使用 [lints](https://pub.dev/packages/lints) 的 recommended 规则，并且不得依赖 Flutter。
+- 根目录是唯一的 pub 锁文件。不要在包目录再提交 `pubspec.lock`。
 - 叙事逻辑放在 `packages/lingo_core`。`app/lib/core` 只预留给应用层基础设施，两者不要混用。
 - 接口与模型输出契约放在 `packages/lingo_protocol`。不要在客户端里手写一份会和服务端漂移的平行类型，作为最终契约。
