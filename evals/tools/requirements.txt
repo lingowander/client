@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-# Copyright (C) 2026 Lingowander
+
 # 语遇评测用例校验脚本的依赖。许可证均与 GPL v3 兼容：
 # jsonschema、referencing、attrs、rpds-py 为 MIT；PyYAML 为 MIT。
 

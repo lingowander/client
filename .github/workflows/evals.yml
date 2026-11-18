@@ -1,10 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-# Copyright (C) 2026 Lingowander
-#
-# 语遇 Lingowander 客户端的一部分。
-# 本文件以 GNU General Public License v3.0 授权（仅此版本）。
-# 完整文本见仓库根目录 LICENSE。
-#
+
 # W1-09 的独立工作流：校验评测用例，并再跑一遍属性测试。
 # 主 CI 的 format / analyze / test 仍在 ci.yml。这里用 Flutter stable，
 # 因为 lingo_testkit 是 workspace 成员，根目录 pub get 需要 Flutter SDK。

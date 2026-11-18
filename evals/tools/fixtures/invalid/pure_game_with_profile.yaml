@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-# Copyright (C) 2026 Lingowander
+
 # schema 能通过，但纯游戏桶错误地期望学习档案。不是正式用例。
 
 schema_version: "0"

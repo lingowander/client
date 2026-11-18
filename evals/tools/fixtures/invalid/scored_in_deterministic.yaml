@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-# Copyright (C) 2026 Lingowander
+
 # 故意把评分型断言写进确定性列。不是正式用例。
 
 schema_version: "0"

@@ -1,11 +1,4 @@
-<!--
-SPDX-License-Identifier: GPL-3.0-only
-Copyright (C) 2026 Lingowander
-
-语遇 Lingowander 客户端的一部分。
-本文件以 GNU General Public License v3.0 授权（仅此版本）。
-完整文本见仓库根目录 LICENSE。
--->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
 
 # 确定性断言约定
 

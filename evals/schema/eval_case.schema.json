@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/lingowander/client/blob/main/evals/schema/eval_case.schema.json",
-  "$comment": "SPDX-License-Identifier: GPL-3.0-only. Copyright (C) 2026 Lingowander. 语遇 Lingowander 客户端的一部分，以 GNU GPL v3.0 授权（仅此版本）。完整文本见仓库根目录 LICENSE。",
+  "$comment": "SPDX-License-Identifier: GPL-3.0-only",
   "title": "语遇评测用例 v0",
   "description": "单条评测用例的格式。schema_version 为 0 时，自由文本和标识必须是占位数据，协议字段等待 W1-04 定稿。本 schema 校验用例文件本身，不校验模型输出。",
   "type": "object",

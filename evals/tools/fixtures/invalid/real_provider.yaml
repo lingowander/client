@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-# Copyright (C) 2026 Lingowander
+
 # 故意写成非 mock 服务商。不是正式用例，也不包含密钥。
 
 schema_version: "0"
