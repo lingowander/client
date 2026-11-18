@@ -1,0 +1,11 @@
+# REUSE.toml (repo root) - DRAFT, 须律师/法务确认. Spec: https://reuse.software/spec-3.3/
+# Default: everything not covered by a closer REUSE.toml, an in-file header or a .license file is GPL-3.0-only.
+version = 1
+SPDX-PackageName = "lingowander-client"
+SPDX-PackageDownloadLocation = "https://github.com/lingowander/client"
+
+[[annotations]]
+path = "**"
+precedence = "closest"            # file header / .license / closer REUSE.toml win; this is only the fallback
+SPDX-FileCopyrightText = "2026 <COPYRIGHT HOLDER - see D-03 / authorisation statements>"
+SPDX-License-Identifier = "GPL-3.0-only"
