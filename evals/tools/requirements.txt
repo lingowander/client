@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+# 语遇评测用例校验脚本的依赖。许可证均与 GPL v3 兼容：
+# jsonschema、referencing、attrs、rpds-py 为 MIT；PyYAML 为 MIT。
+
+jsonschema==4.23.0
+PyYAML==6.0.2
+attrs==26.1.0
+jsonschema-specifications==2025.9.1
+referencing==0.37.0
+rpds-py==2026.9.1
+typing-extensions==4.16.0

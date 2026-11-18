@@ -113,6 +113,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.7"
+  dartproptest:
+    dependency: transitive
+    description:
+      name: dartproptest
+      sha256: "4454c14f94179ed9c1a6d62e9d2be9525d0588878090c8e55305a74d9e553d2b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.1"
   fake_async:
     dependency: transitive
     description:

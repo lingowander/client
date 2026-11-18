@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+# 故意缺少 id，供校验脚本的反例测试使用。不是正式用例。
+
+schema_version: "0"
+title: "PLACEHOLDER：缺少 id"
+description: "PLACEHOLDER 反例"
+data_status: placeholder

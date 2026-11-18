@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+schema_version: "0"
+id: placeholder.language-switch.001
+title: "PLACEHOLDER：回合中途切换语言对"
+description: "PLACEHOLDER 用例。语音路径只有转写文本，没有音频。回合中从 zh 到 en 切到 zh 到 ja。F09 只示范功能编号格式。依赖 lingo_protocol 草案，字段待 W1-04 定稿后对齐。"
+data_status: placeholder
+protocol:
+  status: draft
+  depends_on: lingo_protocol
+  align_after: W1-04
+  referenced_schemas:
+    - turn_output
+    - turn_analysis
+  note: "依赖 lingo_protocol 草案。turn_output 与 turn_analysis 的字段尚未定稿，待 W1-04 合并后对齐。"
+prd_features:
+  - F09
+tags:
+  - language-pair
+  - budget
+  - voice
+  - placeholder
+language_pair:
+  source: zh
+  target: en
+language_switches:
+  - at: mid_turn
+    from_pair:
+      source: zh
+      target: en
+    to_pair:
+      source: zh
+      target: ja
+scene:
+  scene_id: placeholder.scene.station
+  summary: "PLACEHOLDER 场景：车站问路，中途换目标语言"
+  world_state:
+    location_id: placeholder.location.station
+    flags:
+      - placeholder.flag.none
+  character_state:
+    character_id: placeholder.npc.clerk
+    display_name: PLACEHOLDER_NPC
+    mood: PLACEHOLDER_MOOD
+    facts:
+      - PLACEHOLDER_FACT
+input:
+  path: voice
+  transcript: PLACEHOLDER_VOICE_TRANSCRIPT
+  audio: null
+runtime:
+  provider: mock
+  seed: 11
+  mode: fixed_seed
+  fixture_id: placeholder.fixture.language-switch
+expectations:
+  deterministic:
+    - type: schema_conforms
+      target: turn_output
+      note: "回合输出仍须符合草案名。不比较生成文本。"
+    - type: schema_conforms
+      target: turn_analysis
+      note: "分析对象按切换前后的语言对分桶，字段名待 W1-04。"
+    - type: language_pair_isolation
+      source: zh
+      target: en
+      expect_learning_profile: true
+      note: "切走之后，zh 到 en 的档案保持切换前的状态。"
+    - type: language_pair_isolation
+      source: zh
+      target: ja
+      expect_learning_profile: true
+      note: "新的学习信号只进入 zh 到 ja，不回写 en 桶。"
+    - type: forbidden_content
+      surfaces:
+        - structured_fields
+        - player_visible_text
+      kinds:
+        - score
+        - level
+        - percentage
+    - type: latency_budget
+      scope: turn
+      max_ms: 1500
+      note: "1500 是占位延迟预算，度量 mock 回放，不是上线 SLO。"
+  scored:
+    - type: rubric_score
+      rubric_id: placeholder.rubric.helpfulness
+      provider: mock
+      scale: placeholder.scale.unit-interval
+      record_only: true
+      note: "没有 min_score。记录结果不得并入确定性门禁。"

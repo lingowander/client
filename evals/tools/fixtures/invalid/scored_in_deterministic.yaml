@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+# 故意把评分型断言写进确定性列。不是正式用例。
+
+schema_version: "0"
+id: placeholder.invalid.scored-column
+title: "PLACEHOLDER：评分断言放错列"
+description: "PLACEHOLDER 反例，llm_judge 不应出现在 deterministic"
+data_status: placeholder
+protocol:
+  status: draft
+  depends_on: lingo_protocol
+  align_after: W1-04
+  referenced_schemas:
+    - turn_output
+  note: "占位反例"
+prd_features:
+  - F09
+tags:
+  - placeholder
+language_pair:
+  source: zh
+  target: en
+scene:
+  scene_id: placeholder.scene.invalid
+  summary: "PLACEHOLDER 反例场景"
+  world_state:
+    location_id: placeholder.location.invalid
+  character_state:
+    character_id: placeholder.npc.invalid
+    display_name: PLACEHOLDER_NPC
+input:
+  path: typing
+  player_text: PLACEHOLDER_TEXT
+runtime:
+  provider: mock
+  seed: 1
+  mode: fixed_seed
+expectations:
+  deterministic:
+    - type: llm_judge
+      rubric_id: placeholder.rubric.naturalness
+      provider: mock
+      dimension: placeholder.dimension.naturalness
+      record_only: true

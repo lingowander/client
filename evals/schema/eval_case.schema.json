@@ -1,0 +1,418 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lingowander/client/blob/main/evals/schema/eval_case.schema.json",
+  "$comment": "SPDX-License-Identifier: GPL-3.0-only",
+  "title": "语遇评测用例 v0",
+  "description": "单条评测用例的格式。schema_version 为 0 时，自由文本和标识必须是占位数据，协议字段等待 W1-04 定稿。本 schema 校验用例文件本身，不校验模型输出。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "title",
+    "description",
+    "data_status",
+    "protocol",
+    "prd_features",
+    "tags",
+    "language_pair",
+    "scene",
+    "input",
+    "runtime",
+    "expectations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0",
+      "description": "用例格式版本。升到 1 之前，占位约束保持有效。"
+    },
+    "id": {
+      "$ref": "#/$defs/placeholderId"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "PLACEHOLDER"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "PLACEHOLDER"
+    },
+    "data_status": {
+      "const": "placeholder",
+      "description": "v0 只接受占位数据。真实语料需等格式升级，并仍然不得写入真实用户数据。"
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "depends_on", "align_after", "referenced_schemas", "note"],
+      "properties": {
+        "status": { "const": "draft" },
+        "depends_on": { "const": "lingo_protocol" },
+        "align_after": { "const": "W1-04" },
+        "referenced_schemas": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/protocolSchema" }
+        },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "prd_features": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^F[0-9]{2,}$",
+        "description": "PRD 功能编号，例如 F07、F09。v0 示例里的编号只示范格式。"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      }
+    },
+    "language_pair": { "$ref": "#/$defs/languagePair" },
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scene_id", "summary", "world_state", "character_state"],
+      "properties": {
+        "scene_id": { "$ref": "#/$defs/placeholderId" },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "PLACEHOLDER"
+        },
+        "world_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["location_id"],
+          "properties": {
+            "location_id": { "$ref": "#/$defs/placeholderId" },
+            "flags": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/placeholderId" }
+            }
+          }
+        },
+        "character_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["character_id", "display_name"],
+          "properties": {
+            "character_id": { "$ref": "#/$defs/placeholderId" },
+            "display_name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "PLACEHOLDER"
+            },
+            "mood": {
+              "type": "string",
+              "pattern": "PLACEHOLDER"
+            },
+            "facts": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "PLACEHOLDER"
+              }
+            }
+          }
+        }
+      }
+    },
+    "input": {
+      "description": "玩家输入路径：voice 语音，typing 打字，word_pick 选词。",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "player_text"],
+          "properties": {
+            "path": { "const": "typing" },
+            "player_text": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "PLACEHOLDER"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "transcript", "audio"],
+          "properties": {
+            "path": { "const": "voice" },
+            "transcript": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "PLACEHOLDER"
+            },
+            "audio": {
+              "type": "null",
+              "description": "v0 不接收音频。真实录音和真实用户语音都不要写入用例。"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "tokens"],
+          "properties": {
+            "path": { "const": "word_pick" },
+            "tokens": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "PLACEHOLDER"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "language_switches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["at", "from_pair", "to_pair"],
+        "properties": {
+          "at": {
+            "enum": ["after_player_input", "mid_turn", "before_response"]
+          },
+          "from_pair": { "$ref": "#/$defs/languagePair" },
+          "to_pair": { "$ref": "#/$defs/languagePair" }
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "seed", "mode"],
+      "properties": {
+        "provider": {
+          "const": "mock",
+          "description": "只允许 mock 服务商。不接真实模型。"
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "mode": {
+          "enum": ["fixed_seed", "replay"],
+          "description": "fixed_seed 固定随机种子；replay 回放 mock 夹具。二者都不断言措辞。"
+        },
+        "fixture_id": {
+          "$ref": "#/$defs/placeholderId",
+          "description": "mock 回放夹具的占位标识。v0 不附带夹具文件，运行器不得据此访问真实模型。"
+        }
+      }
+    },
+    "expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deterministic"],
+      "properties": {
+        "deterministic": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/deterministicAssertion" }
+        },
+        "scored": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/scoredAssertion" },
+          "description": "评分型断言与确定性断言分列。v0 不设通过阈值，不能当作门禁。"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "placeholderId": {
+      "type": "string",
+      "pattern": "^placeholder(?:\\.[a-z0-9-]+)+$"
+    },
+    "languageTag": {
+      "type": "string",
+      "pattern": "^(?:[a-zA-Z]{2,3}|x)(?:-[a-zA-Z0-9]{1,8})*$",
+      "description": "BCP 47 风格的语言标记。源语言与目标语言相同表示纯游戏。"
+    },
+    "languagePair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "target"],
+      "properties": {
+        "source": { "$ref": "#/$defs/languageTag" },
+        "target": { "$ref": "#/$defs/languageTag" }
+      }
+    },
+    "protocolSchema": {
+      "enum": ["turn_output", "turn_analysis", "weakness_plan"],
+      "description": "lingo_protocol 草案中的 schema 名。字段待 W1-04 定稿后对齐。"
+    },
+    "deterministicAssertion": {
+      "oneOf": [
+        { "$ref": "#/$defs/schemaConforms" },
+        { "$ref": "#/$defs/schemaAbsent" },
+        { "$ref": "#/$defs/requiredFields" },
+        { "$ref": "#/$defs/rewardKeyOnce" },
+        { "$ref": "#/$defs/languagePairIsolation" },
+        { "$ref": "#/$defs/forbiddenContent" },
+        { "$ref": "#/$defs/lengthBudget" },
+        { "$ref": "#/$defs/latencyBudget" }
+      ]
+    },
+    "scoredAssertion": {
+      "oneOf": [
+        { "$ref": "#/$defs/llmJudge" },
+        { "$ref": "#/$defs/rubricScore" }
+      ]
+    },
+    "schemaConforms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "target"],
+      "properties": {
+        "type": { "const": "schema_conforms" },
+        "target": { "$ref": "#/$defs/protocolSchema" },
+        "note": { "type": "string" }
+      }
+    },
+    "schemaAbsent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "target"],
+      "properties": {
+        "type": { "const": "schema_absent" },
+        "target": { "$ref": "#/$defs/protocolSchema" },
+        "note": { "type": "string" }
+      }
+    },
+    "requiredFields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "target", "fields"],
+      "properties": {
+        "type": { "const": "required_fields" },
+        "target": { "$ref": "#/$defs/protocolSchema" },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "note": { "type": "string" }
+      }
+    },
+    "rewardKeyOnce": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "reward_key"],
+      "properties": {
+        "type": { "const": "reward_key_once" },
+        "reward_key": { "$ref": "#/$defs/placeholderId" },
+        "note": { "type": "string" }
+      }
+    },
+    "languagePairIsolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "source", "target", "expect_learning_profile"],
+      "properties": {
+        "type": { "const": "language_pair_isolation" },
+        "source": { "$ref": "#/$defs/languageTag" },
+        "target": { "$ref": "#/$defs/languageTag" },
+        "expect_learning_profile": { "type": "boolean" },
+        "note": { "type": "string" }
+      }
+    },
+    "forbiddenContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "surfaces", "kinds"],
+      "properties": {
+        "type": { "const": "forbidden_content" },
+        "surfaces": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["structured_fields", "player_visible_text"]
+          }
+        },
+        "kinds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["score", "level", "percentage"]
+          }
+        },
+        "note": { "type": "string" }
+      }
+    },
+    "lengthBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "target", "max_chars", "unit"],
+      "properties": {
+        "type": { "const": "length_budget" },
+        "target": { "const": "player_visible_text" },
+        "max_chars": { "type": "integer", "minimum": 1 },
+        "unit": { "const": "unicode_scalars" },
+        "note": { "type": "string" }
+      }
+    },
+    "latencyBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "scope", "max_ms"],
+      "properties": {
+        "type": { "const": "latency_budget" },
+        "scope": { "const": "turn" },
+        "max_ms": { "type": "integer", "minimum": 1 },
+        "note": { "type": "string" }
+      }
+    },
+    "llmJudge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "rubric_id", "provider", "dimension", "record_only"],
+      "properties": {
+        "type": { "const": "llm_judge" },
+        "rubric_id": { "$ref": "#/$defs/placeholderId" },
+        "provider": { "const": "mock" },
+        "dimension": { "$ref": "#/$defs/placeholderId" },
+        "record_only": { "const": true },
+        "note": { "type": "string" }
+      }
+    },
+    "rubricScore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "rubric_id", "provider", "scale", "record_only"],
+      "properties": {
+        "type": { "const": "rubric_score" },
+        "rubric_id": { "$ref": "#/$defs/placeholderId" },
+        "provider": { "const": "mock" },
+        "scale": { "$ref": "#/$defs/placeholderId" },
+        "record_only": { "const": true },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

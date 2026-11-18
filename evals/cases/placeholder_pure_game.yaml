@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+schema_version: "0"
+id: placeholder.pure-game.001
+title: "PLACEHOLDER：源语言等于目标语言的纯游戏"
+description: "PLACEHOLDER 用例。选词路径，源语言与目标语言同为 zh，表示纯游戏。该桶不产生学习档案，也不产出 weakness_plan。F07 只示范功能编号格式。依赖 lingo_protocol 草案，字段待 W1-04 定稿后对齐。"
+data_status: placeholder
+protocol:
+  status: draft
+  depends_on: lingo_protocol
+  align_after: W1-04
+  referenced_schemas:
+    - turn_output
+    - weakness_plan
+  note: "依赖 lingo_protocol 草案。weakness_plan 在纯游戏桶中应当缺席；字段形状待 W1-04 定稿后对齐。"
+prd_features:
+  - F07
+tags:
+  - pure-game
+  - language-pair
+  - word-pick
+  - placeholder
+language_pair:
+  source: zh
+  target: zh
+scene:
+  scene_id: placeholder.scene.arcade
+  summary: "PLACEHOLDER 场景：同语言纯游戏选词"
+  world_state:
+    location_id: placeholder.location.arcade
+    flags:
+      - placeholder.flag.none
+  character_state:
+    character_id: placeholder.npc.host
+    display_name: PLACEHOLDER_NPC
+    mood: PLACEHOLDER_MOOD
+    facts:
+      - PLACEHOLDER_FACT
+input:
+  path: word_pick
+  tokens:
+    - PLACEHOLDER_TOKEN_A
+    - PLACEHOLDER_TOKEN_B
+runtime:
+  provider: mock
+  seed: 13
+  mode: replay
+  fixture_id: placeholder.fixture.pure-game
+expectations:
+  deterministic:
+    - type: schema_conforms
+      target: turn_output
+      note: "纯游戏仍有回合输出。不断言对白原文。"
+    - type: schema_absent
+      target: weakness_plan
+      note: "源语言等于目标语言时不产生学习计划。"
+    - type: language_pair_isolation
+      source: zh
+      target: zh
+      expect_learning_profile: false
+      note: "纯游戏桶没有学习档案，也不得把信号写入其他语言对。"
+    - type: forbidden_content
+      surfaces:
+        - structured_fields
+        - player_visible_text
+      kinds:
+        - score
+        - level
+        - percentage
+      note: "纯游戏同样不展示分数、等级或百分比。"

@@ -58,3 +58,27 @@ jobs:
       - name: Test lingo_protocol
         working-directory: packages/lingo_protocol
         run: dart test
+
+  lingo-testkit:
+    name: lingo_testkit analyze, test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: dart pub get
+
+      - name: Analyze lingo_testkit
+        working-directory: packages/lingo_testkit
+        run: dart analyze
+
+      - name: Test lingo_testkit
+        working-directory: packages/lingo_testkit
+        run: dart test

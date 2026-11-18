@@ -2,15 +2,15 @@
 
 语遇是一款人工智能情景对话语言学习游戏，形式接近视觉小说，界面与文案以中文为先。玩家可以不登录、在本机游玩，也可以使用自己的模型密钥，或在登录后走官方模型与云同步。叙事规则放在纯 Dart 内核里，三种路径共用同一套故事引擎。
 
-本仓库目前只是工程骨架：有可以编译的 Flutter 应用、两个纯 Dart 占位包，以及格式检查、静态分析和测试的持续集成。没有剧情、输入、存档或网络功能。
+本仓库目前只是工程骨架：有可以编译的 Flutter 应用、叙事与契约两个占位包、评测用例模板、属性测试骨架，以及格式检查、静态分析和测试的持续集成。没有剧情、输入、存档或网络功能。
 
 ## English summary
 
-Lingowander (语遇) is a Chinese-first, visual-novel style language-learning game built around AI scenario dialogue. This repository is the GPL-3.0 client. The Flutter app lives in `app/`. Narrative code will live in the pure-Dart package `packages/lingo_core`. API and model-output contracts will live in `packages/lingo_protocol`. A separate private server repository (Go) will host the official model gateway, metering, sync, and accounts. This tree is a skeleton: a placeholder home screen, stub libraries, and CI. No game features yet.
+Lingowander (语遇) is a Chinese-first, visual-novel style language-learning game built around AI scenario dialogue. This repository is the GPL-3.0 client. The Flutter app lives in `app/`. Narrative code will live in the pure-Dart package `packages/lingo_core`. API and model-output contracts will live in `packages/lingo_protocol`. A separate private server repository (Go) will host the official model gateway, metering, sync, and accounts. This tree is a skeleton: a placeholder home screen, stub libraries, eval-case templates, a property-test package, and CI. No game features yet. `lingo_core` and `lingo_protocol` still export only their package names.
 
 ## 仓库布局
 
-Flutter 应用在 `app/`，不在仓库根目录。根目录的 `pubspec.yaml` 是 Dart pub workspace，成员是应用和两个纯 Dart 包。组织标识为 `com.lingowander`（Android 应用 id 与 iOS bundle id 为 `com.lingowander.lingowander`）。
+Flutter 应用在 `app/`，不在仓库根目录。根目录的 `pubspec.yaml` 是 Dart pub workspace，成员是应用和三个纯 Dart 包。组织标识为 `com.lingowander`（Android 应用 id 与 iOS bundle id 为 `com.lingowander.lingowander`）。
 
 ```text
 .
@@ -25,13 +25,14 @@ Flutter 应用在 `app/`，不在仓库根目录。根目录的 `pubspec.yaml` �
 │           ├── save_sync/        本地存档与云同步
 │           └── byok/             自带密钥
 ├── packages/
-│   ├── lingo_core/               叙事内核，纯 Dart，无 Flutter 依赖
-│   └── lingo_protocol/           API / LLM 契约，纯 Dart 占位
+│   ├── lingo_core/               叙事内核，纯 Dart，无 Flutter 依赖（仍是占位）
+│   ├── lingo_protocol/           API / LLM 契约，纯 Dart 占位
+│   └── lingo_testkit/            属性测试骨架与参考实现，不是产品逻辑
 ├── prompts/                      提示词（空）
-├── evals/                        评测集（空）
+├── evals/                        评测用例 v0 与确定性断言约定
 ├── docs/                         文档（空）
 ├── assets/                       素材（空，许可与代码分开）
-└── .github/workflows/ci.yml
+└── .github/workflows/            ci.yml 与 evals.yml
 ```
 
 `app/lib/core` 预留给路由、依赖装配等应用层代码。故事引擎在 `packages/lingo_core`，不要把叙事逻辑写进 `app/lib/core`。
@@ -57,9 +58,10 @@ dart format --output=none --set-exit-if-changed .
 cd app && flutter analyze && flutter test
 cd packages/lingo_core && dart analyze && dart test
 cd packages/lingo_protocol && dart analyze && dart test
+cd packages/lingo_testkit && dart analyze && dart test
 ```
 
-后两条里的 `cd` 从仓库根目录算起。应用使用 `flutter_lints`，两个纯 Dart 包使用 `lints`。
+上面的 `cd` 从仓库根目录算起。应用使用 `flutter_lints`，纯 Dart 包使用 `lints`。评测用例的 schema 校验在 `.github/workflows/evals.yml`，不在上面这条主检查里。
 
 ## 配套服务端
 

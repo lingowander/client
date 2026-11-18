@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+# W1-09 的独立工作流：校验评测用例，并再跑一遍属性测试。
+# 主 CI 的 format / analyze / test 仍在 ci.yml。这里用 Flutter stable，
+# 因为 lingo_testkit 是 workspace 成员，根目录 pub get 需要 Flutter SDK。
+
+name: evals
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evals-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-eval-cases:
+    name: eval case schema
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install validator dependencies
+        run: python -m pip install -r evals/tools/requirements.txt
+      - name: Validate eval cases
+        run: python evals/tools/validate_cases.py
+      - name: Validator self-test
+        run: python evals/tools/test_validate_cases.py
+
+  property-tests:
+    name: property tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Resolve workspace
+        run: dart pub get
+      - name: Analyze
+        working-directory: packages/lingo_testkit
+        run: dart analyze --fatal-infos
+      - name: Test
+        working-directory: packages/lingo_testkit
+        run: dart test

@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+# 用例必须是对象。这个列表用来确认校验器会拒绝它。
+
+- PLACEHOLDER
